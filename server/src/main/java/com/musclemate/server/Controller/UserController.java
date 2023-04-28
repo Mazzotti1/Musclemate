@@ -5,14 +5,16 @@ import com.musclemate.server.entity.form.UserForm;
 import com.musclemate.server.service.impl.UserServiceImpl;
 
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.*;
 
-import javax.naming.AuthenticationException;
-import javax.validation.Valid;
+
+
 import java.util.List;
 
 @RestController
@@ -28,9 +30,9 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<User> login(@RequestBody UserForm form) throws AuthenticationException {
+    public ResponseEntity<String> login(@RequestBody UserForm form) throws AuthenticationException {
         User user = service.login(form.getEmail(), form.getPassword());
-        return ResponseEntity.ok().body(user);
+        return ResponseEntity.ok().body(user.getToken());
     }
 
     @GetMapping

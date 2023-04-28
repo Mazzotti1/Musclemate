@@ -8,9 +8,9 @@ import com.musclemate.server.repository.UserRepository;
 import com.musclemate.server.service.IUserService;
 
 import com.musclemate.server.utils.JwtUtils;
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -18,7 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import javax.naming.AuthenticationException;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     }
 
     @Override
-    public User create(@NotNull UserForm form) {
+    public User create( UserForm form) {
 
         if (!form.getEmail().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
             throw new IllegalArgumentException("O email informado é inválido.");
@@ -63,12 +63,24 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
             throw new BadCredentialsException("Senha incorreta");
         }
 
-        String token = JwtUtils.generateToken(user.getId(), user.getNome(),user.getSobrenome(),user.getBio(),user.getEmail(),user.getCidade(),user.getTempoCardio(),user.getTreinos(),user.getTempoTotal(),user.getPesoTotal(),user.getTempoCardio());
-        user.setToken(token);
+        JwtUtils jwtUtils = new JwtUtils();
+        String token = jwtUtils.generateToken(
+                user.getId(),
+                user.getNome(),
+                user.getSobrenome(),
+                user.getEmail(),
+                user.getCidade(),
+                user.getEstado(),
+                user.getBio(),
+                user.getTreinos(),
+                user.getTempoTotal(),
+                user.getPesoTotal(),
+                user.getTempoCardio()
+        );
 
+        user.setToken(token);
         return user;
     }
-
 
 
     @Override

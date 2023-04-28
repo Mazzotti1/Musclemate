@@ -3,12 +3,13 @@ package com.musclemate.server.entity.form;
 
 
 
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
-import javax.validation.constraints.*;
+
 import java.time.LocalDate;
 
 @Data
@@ -40,7 +41,6 @@ public class UserForm {
 
     private String bio;
 
-    @NotNull(message = "Prencha o campo corretamente.")
     @Past(message = "Data '${validatedValue}' é inválida.")
     private LocalDate dataDeNascimento;
 
