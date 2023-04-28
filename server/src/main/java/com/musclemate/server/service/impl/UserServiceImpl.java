@@ -3,12 +3,13 @@ package com.musclemate.server.service.impl;
 import com.musclemate.server.entity.User;
 import com.musclemate.server.entity.form.UserForm;
 import com.musclemate.server.entity.form.UserUpdateForm;
-import com.musclemate.server.infra.utils.JavaTimeUtils;
 import com.musclemate.server.repository.UserRepository;
 import com.musclemate.server.service.IUserService;
 
 import com.musclemate.server.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements IUserService, UserDetailsService {
@@ -82,33 +84,94 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
         return user;
     }
 
+    public User updateUserEmail(Long id, String password, UserUpdateForm formUpdate) {
+        User user = get(id);
+        if (user == null) {
+            throw new BadCredentialsException("Usuário não encontrado.");
+        }
+        if (!getPasswordEncoder().matches(password, user.getPassword())) {
+            throw new BadCredentialsException("Senha incorreta.");
+        }
+
+        String newEmail = formUpdate.getEmail();
+        if (newEmail != null && !newEmail.equals(user.getEmail())) {
+
+            User existingUser = repository.findByEmail(newEmail);
+            if (existingUser != null) {
+                throw new BadCredentialsException("Este email já está sendo usado por outro usuário.");
+            }
+            user.setEmail(newEmail);
+        }
+        return repository.save(user);
+    }
+
+    public User updateUserData(Long id, UserUpdateForm formUpdate) {
+        User user = get(id);
+        if (user == null) {
+            throw new BadCredentialsException("Usuário não encontrado.");
+        }
+
+        String newName = formUpdate.getNome();
+        if (newName != null) {
+            user.setNome(newName);
+        }
+
+        String newLastName = formUpdate.getSobrenome();
+        if (newLastName != null) {
+            user.setSobrenome(newLastName);
+        }
+
+        String newCity = formUpdate.getCidade();
+        if (newCity != null) {
+            user.setCidade(newCity);
+        }
+
+        String newState = formUpdate.getEstado();
+        if (newState != null) {
+            user.setEstado(newState);
+        }
+
+        String newBio = formUpdate.getBio();
+        if (newBio != null) {
+            user.setBio(newBio);
+        }
+
+        LocalDate newBirthdate = formUpdate.getDataDeNascimento();
+        if (newBirthdate != null) {
+            user.setDataDeNascimento(newBirthdate);
+        }
+
+        String newWeight = formUpdate.getPeso();
+        if (newWeight != null) {
+            user.setPeso(newWeight);
+        }
+
+        return repository.save(user);
+    }
 
     @Override
     public User get(Long id) {
-        return null;
+        return repository.findById(id).orElse(null);
     }
 
     @Override
-    public List<User> getAll(String dataDeNascimento) {
-
-        if(dataDeNascimento == null) {
+    public List<User> getAll(String nome) {
+        if (nome == null) {
             return repository.findAll();
         } else {
-            LocalDate localDate = LocalDate.parse(dataDeNascimento, JavaTimeUtils.LOCAL_DATE_FORMATTER);
-            return repository.findByDataDeNascimento(localDate);
+            return repository.findByNomeContainingIgnoreCase(nome);
         }
-
     }
 
     @Override
-    public User update(Long id, UserUpdateForm formUpdate) {
-        return null;
+    public boolean delete(Long id) {
+        try {
+            repository.deleteById(id);
+            return true;
+        } catch (EmptyResultDataAccessException ex) {
+            return false;
+        }
     }
-
-    @Override
-    public void delete(Long id) {
-    }
-
         @Override
         public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
             User user = repository.findByEmail(username);
@@ -118,6 +181,13 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
             return new org.springframework.security.core.userdetails.User(
                     user.getEmail(), user.getPassword(), new ArrayList<>());
         }
+        @Override
+        public User getByNome(String nome) {
+            return repository.findByNome(nome);
+    }
 
-
+    @Override
+    public User update(Long id, UserUpdateForm formUpdate) {
+        return null;
+    }
 }

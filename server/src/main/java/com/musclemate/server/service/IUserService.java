@@ -17,10 +17,11 @@ public interface IUserService {
 
     List<User> getAll(String dataDeNascimento);
 
+    User getByNome(String nome);
 
     User update(Long id, UserUpdateForm formUpdate);
 
-    void delete(Long id);
+    boolean delete(Long id);
 
 
 }

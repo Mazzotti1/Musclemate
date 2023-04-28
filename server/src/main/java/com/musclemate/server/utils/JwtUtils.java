@@ -5,14 +5,15 @@ import com.auth0.jwt.algorithms.Algorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.stereotype.Component;
-
+import io.github.cdimascio.dotenv.Dotenv;
 import java.util.Date;
 
 @Component
 public class JwtUtils {
 
+    Dotenv dotenv = Dotenv.load();
 
-    private String secret = "asdasdas";
+    private String secret = dotenv.get("JWT_SECRET");
 
 
     public JwtUtils(AuthenticationManager authenticationManager) {

@@ -13,13 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class ServerController {
-    @GetMapping("/")
-    public String hello() {
-        System.out.println("Server is running");
-        return "Hello, world!";
-    }
 
-    @GetMapping("/rotaProtegida")
+    @GetMapping("/admin")
     public ResponseEntity<String> rotaProtegida(Authentication authentication) {
         User user = (User) authentication.getPrincipal();
         if (!user.isAdmin()) {
