@@ -54,5 +54,6 @@ public class User {
         this.token = token;
     }
 
+
     private boolean admin;
 }
