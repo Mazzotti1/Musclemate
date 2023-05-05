@@ -1,13 +1,11 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:musclemate/screen/home_page.dart';
-
+import 'package:musclemate/components/home/home_page.dart';
 
 
 class AppWidget extends StatelessWidget {
   const AppWidget({super.key});
-
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +14,6 @@ class AppWidget extends StatelessWidget {
 
       ),
       home: const HomePage(),
-
     );
   }
 }
