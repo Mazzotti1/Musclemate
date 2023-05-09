@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:musclemate/screen/configuration_page.dart';
+import 'package:musclemate/screen/home_config/configuration_page.dart';
 import 'package:musclemate/screen/notificacoes_page.dart';
 import 'package:musclemate/components/home/posts.dart';
 
@@ -35,14 +35,15 @@ class _FeedPageState extends State<FeedPage>{
   automaticallyImplyLeading: false,
   leading: null,
   actions: [
+     IconButton(
+     onPressed: _navigateToNotifications,
+      icon: const Icon(Icons.notifications),
+    ),
     IconButton(
      onPressed: _navigateToConfigurations,
       icon: const Icon(Icons.settings),
     ),
-    IconButton(
-     onPressed: _navigateToNotifications,
-      icon: const Icon(Icons.notifications),
-    ),
+
   ],
 ),
 

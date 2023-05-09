@@ -2,15 +2,15 @@
 import 'package:flutter/material.dart';
 
 
-class Perfil extends StatelessWidget {
-  const Perfil({Key? key}) : super(key: key);
+class PerfilActivitys extends StatelessWidget {
+  const PerfilActivitys({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: 200,
       height: 200,
-      color: Colors.green,
+      color: Colors.yellow,
     );
   }
 }

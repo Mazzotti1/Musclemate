@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musclemate/screen/Feed_page.dart';
-import 'package:musclemate/screen/perfil_page.dart';
-import 'package:musclemate/screen/record_page.dart';
+import 'package:musclemate/screen/perfil/perfil_page.dart';
+import 'package:musclemate/screen/RecordPages/record_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
