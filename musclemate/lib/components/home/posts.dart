@@ -17,7 +17,7 @@ class Posts extends StatelessWidget {
           children: [
             Column(
               children: const [
-                Icon(Icons.person, size: 50),
+                Icon(Icons.person_outline_rounded, size: 50),
               ],
             ),
             const SizedBox(width: 20),

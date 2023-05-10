@@ -2,14 +2,14 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
-class WeightProgressChart extends StatefulWidget {
-  const WeightProgressChart({super.key});
+class ExerciseVolumeChart extends StatefulWidget {
+  const ExerciseVolumeChart({super.key});
 
   @override
-  State<WeightProgressChart> createState() => _WeightProgressChartState();
+  State<ExerciseVolumeChart> createState() => _ExerciseVolumeChartState();
 }
 
-class _WeightProgressChartState extends State<WeightProgressChart> {
+class _ExerciseVolumeChartState extends State<ExerciseVolumeChart> {
 
 
   bool showAvg = false;

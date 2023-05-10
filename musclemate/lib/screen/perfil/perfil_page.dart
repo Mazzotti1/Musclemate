@@ -2,16 +2,30 @@
 
 import 'package:flutter/material.dart';
 import 'package:musclemate/components/perfil/perfil.dart';
-import 'package:musclemate/components/perfil/perfil_progress.dart';
 
-import 'package:musclemate/screen/notificacoes_page.dart';
 import 'package:musclemate/screen/perfil/perfil_activitys_page.dart';
 import 'package:musclemate/screen/perfil/perfil_progress_page.dart';
 
+import '../home_config/configuration_page.dart';
 
 
-class PerfilPage extends StatelessWidget {
+
+class PerfilPage extends StatefulWidget {
   const PerfilPage({Key? key}) : super(key: key);
+
+  @override
+  _PerfilPageState createState()=> _PerfilPageState();
+}
+class _PerfilPageState extends State<PerfilPage>{
+
+
+ void _navigateToConfigurations() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const ConfigurationPage()),
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +38,7 @@ class PerfilPage extends StatelessWidget {
           title: const Text('Perfil'),
           actions: [
             IconButton(
-              onPressed: () {
-                // Função do botão de configurações
-              },
+              onPressed: _navigateToConfigurations,
               icon: const Icon(Icons.settings),
             ),
           ],
