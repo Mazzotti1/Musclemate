@@ -1,7 +1,9 @@
 
 import 'package:flutter/material.dart';
+import 'package:musclemate/screen/perfil/followers/perfil_followers_page.dart';
+import 'package:musclemate/screen/perfil/followers/perfil_following_page.dart';
 import 'package:musclemate/screen/perfil/perfil_activitys_onpage.dart';
-import 'package:musclemate/screen/perfil/perfil_activitys_page.dart';
+
 import 'package:musclemate/screen/perfil/perfil_edit_page.dart';
 
 import '../../screen/perfil/perfil_statistic_page.dart';
@@ -36,6 +38,18 @@ class _PerfilState extends State<Perfil>{
     );
   }
 
+    void _navigateToFollowers() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PerfilFollowersPage()),
+    );
+  }
+      void _navigateToFollowing() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PerfilFollowingPage()),
+    );
+  }
 
 @override
 Widget build(BuildContext context) {
@@ -79,23 +93,30 @@ Widget build(BuildContext context) {
       ),
       const SizedBox(height: 0,),
       Padding(
-        padding: const EdgeInsets.only(left:50.0),
+        padding: const EdgeInsets.only(left:40.0),
         child: Row(
           children: [
-            Column(
-              children: const [
-                Text('Seguindo', style: TextStyle(color: Color.fromRGBO(189, 172, 103, 1))),
-                SizedBox(width: 5),
-                Text('4', style: TextStyle(color: Colors.black)),
-              ],
+            TextButton(
+              onPressed: _navigateToFollowing,
+              child: Column(
+                children: const [
+                  Text('Seguindo', style: TextStyle(color: Color.fromRGBO(189, 172, 103, 1))),
+                  SizedBox(width: 5),
+                  Text('4', style: TextStyle(color: Colors.black)),
+                ],
+              ),
             ),
-            const SizedBox(width: 20),
-            Column(
-              children: const [
-                Text('Seguidores', style: TextStyle(color: Color.fromRGBO(189, 172, 103, 1))),
-                SizedBox(width: 5),
-                Text('6', style: TextStyle(color: Colors.black)),
-              ],
+
+            const SizedBox(width: 10),
+            TextButton(
+              onPressed:_navigateToFollowers,
+              child: Column(
+                children: const [
+                  Text('Seguidores', style: TextStyle(color: Color.fromRGBO(189, 172, 103, 1))),
+                  SizedBox(width: 5),
+                  Text('6', style: TextStyle(color: Colors.black)),
+                ],
+              ),
             ),
             const SizedBox(width: 60),
             OutlinedButton.icon(
