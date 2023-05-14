@@ -1,5 +1,6 @@
 package com.musclemate.server.service.impl;
 
+import com.musclemate.server.Controller.RegistroIncorretoException;
 import com.musclemate.server.entity.User;
 import com.musclemate.server.entity.form.UserForm;
 import com.musclemate.server.entity.form.UserUpdateForm;
@@ -9,7 +10,6 @@ import com.musclemate.server.service.IUserService;
 import com.musclemate.server.utils.JwtUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements IUserService, UserDetailsService {
@@ -39,7 +38,7 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     public User create( UserForm form) {
 
         if (!form.getEmail().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
-            throw new IllegalArgumentException("O email informado é inválido.");
+            throw new RegistroIncorretoException("O email informado esta incorreto.");
         }
 
         User user = new User();
@@ -50,7 +49,7 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
             user.setPassword(getPasswordEncoder().encode(rawPassword));
             return repository.save(user);
         } else {
-            throw new IllegalArgumentException("A senha precisa ter no mínimo 6 caracteres.");
+            throw new RegistroIncorretoException("A senha precisa ter no minimo 6 caracteres.");
         }
     }
 
@@ -58,11 +57,11 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     public User login(String email, String password) throws AuthenticationException {
         User user = repository.findByEmail(email);
         if (user == null) {
-            throw new BadCredentialsException("Usuário não encontrado");
+            throw new RegistroIncorretoException("Usuario nao encontrado");
         }
 
         if (!getPasswordEncoder().matches(password, user.getPassword())) {
-            throw new BadCredentialsException("Senha incorreta");
+            throw new RegistroIncorretoException("Senha incorreta");
         }
 
         JwtUtils jwtUtils = new JwtUtils();
@@ -83,6 +82,8 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
         user.setToken(token);
         return user;
     }
+
+
 
     public User updateUserEmail(Long id, String password, UserUpdateForm formUpdate) {
         User user = get(id);
@@ -190,4 +191,24 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     public User update(Long id, UserUpdateForm formUpdate) {
         return null;
     }
+
+    @Override
+    public boolean checkEmailExists(String email) {
+        User user = repository.findByEmail(email);
+        return user != null;
+
+    }
+
+    @Override
+    public User getUserByEmail(String email) {
+        return repository.findByEmail(email);
+    }
+    @Override
+    public User saveUser(User user) {
+        return repository.save(user);
+    }
+
+
+
 }
+

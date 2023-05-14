@@ -50,10 +50,16 @@ public class User {
     private String tempoCardio;
     private String token;
 
+    private String recoveryCode;
+
     public void setToken(String token) {
         this.token = token;
     }
-
-
     private boolean admin;
+
+    public void setRecoveryCode(String recoveryCode) {
+        this.recoveryCode = recoveryCode;
+    }
+
 }
+

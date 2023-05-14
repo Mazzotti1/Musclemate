@@ -3,10 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:musclemate/components/perfil/followers/perfil_following.dart';
 import 'package:musclemate/components/perfil/followers/perfil_follows.dart';
-import 'package:musclemate/components/perfil/perfil.dart';
 
-import 'package:musclemate/screen/perfil/perfil_activitys_page.dart';
-import 'package:musclemate/screen/perfil/perfil_progress_page.dart';
 
 import '../../home_config/configuration_page.dart';
 

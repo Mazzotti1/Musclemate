@@ -24,4 +24,9 @@ public interface IUserService {
     boolean delete(Long id);
 
 
+    boolean checkEmailExists(String email);
+
+    User getUserByEmail(String email);
+
+    User saveUser(User user);
 }

@@ -1,7 +1,8 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:musclemate/components/home/home_page.dart';
+
+import 'package:musclemate/screen/Login&Register/welcome_page.dart';
 
 
 class AppWidget extends StatelessWidget {
@@ -13,7 +14,7 @@ class AppWidget extends StatelessWidget {
       theme: ThemeData(
 
       ),
-      home: const HomePage(),
+      home: const WelcomePage(),
     );
   }
 }

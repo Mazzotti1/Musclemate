@@ -6,6 +6,7 @@ import 'package:musclemate/components/home/posts.dart';
 
 
 
+
 class FeedPage extends StatefulWidget {
   const FeedPage({Key? key}) : super(key: key);
 
@@ -25,6 +26,7 @@ class _FeedPageState extends State<FeedPage>{
       MaterialPageRoute(builder: (context) => const ConfigurationPage()),
     );
   }
+
 
 
   @override

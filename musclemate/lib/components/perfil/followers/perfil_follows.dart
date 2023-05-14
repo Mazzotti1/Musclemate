@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import 'package:musclemate/components/home/posts.dart';
+
 
 
 class PerfilAFollows extends StatelessWidget {
@@ -23,10 +23,10 @@ class PerfilAFollows extends StatelessWidget {
                                 color: const Color.fromRGBO(242, 242, 242, 1),
                                 borderRadius: BorderRadius.circular(10),
                               ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(left: 20.0),
+                              child: const Padding(
+                                padding: EdgeInsets.only(left: 20.0),
                                 child: Row(
-                                  children: const [
+                                  children: [
                                     Icon(Icons.search, color: Colors.black45),
                                     SizedBox(width: 5),
                                     Expanded(
@@ -54,8 +54,8 @@ class PerfilAFollows extends StatelessWidget {
                               height: 15,
                               color: const Color.fromRGBO(242, 242, 242, 1),
                             ),
-                            Column(
-                              children: const [
+                            const Column(
+                              children: [
                                 SizedBox(height: 20,),
                                 Text('Followers')
                               ],
