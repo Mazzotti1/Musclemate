@@ -35,8 +35,8 @@ public class EmailService {
         List<NameValuePair> parameters = new ArrayList<>();
         parameters.add(new BasicNameValuePair("from", "Mailgun Sandbox <postmaster@YOUR_MAILGUN_DOMAIN>"));
         parameters.add(new BasicNameValuePair("to", email));
-        parameters.add(new BasicNameValuePair("subject", "Hello Musclemate"));
-        parameters.add(new BasicNameValuePair("text", "Seu código de recuperação de senha é: " + recoveryCode));
+        parameters.add(new BasicNameValuePair("subject", "Codigo Musclemate"));
+        parameters.add(new BasicNameValuePair("text", "Seu codigo de recuperacao de senha e: " + recoveryCode));
 
         try {
             post.setEntity(new UrlEncodedFormEntity(parameters));

@@ -57,7 +57,7 @@ public class SecurityConfig implements SecurityConfigurations { // As classes de
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests()
-                .requestMatchers("/users/register","/users/login").permitAll()
+                .requestMatchers("/users/register","/users/login", "/forgetPassword", "/sendCode", "/resetPassword").permitAll()
                 .anyRequest().authenticated()
                 .and().cors()
                 .and().headers().frameOptions().disable()

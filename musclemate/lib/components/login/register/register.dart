@@ -63,9 +63,7 @@ try {
   print('Usuário registrado com sucesso');
   _navigateToLogin();
 } else {
-  // A requisição não foi bem-sucedida
   if (response.statusCode == 400) {
-    // Extrair a mensagem de erro do corpo da resposta
     final error = jsonDecode(response.body)['error'];
     setState(() {
       _errorMessage = 'Erro: $error';

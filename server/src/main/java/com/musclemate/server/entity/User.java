@@ -52,6 +52,9 @@ public class User {
 
     private String recoveryCode;
 
+    public String getRecoveryCode() {
+        return recoveryCode;
+    }
     public void setToken(String token) {
         this.token = token;
     }
