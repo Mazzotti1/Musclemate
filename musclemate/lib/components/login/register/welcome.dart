@@ -1,6 +1,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:musclemate/components/google/google_button.dart';
 import 'package:musclemate/screen/Login&Register/login_page.dart';
 import 'package:musclemate/screen/Login&Register/register_page.dart';
 
@@ -83,35 +84,8 @@ Widget build(BuildContext context) {
       textAlign: TextAlign.center,
     ),
   ),
-  const SizedBox(height: 50,),
-    Padding(
-    padding: const EdgeInsets.symmetric(vertical: 16.0),
-    child: TextButton.icon(
-      onPressed: null,
-      icon: const FaIcon(
-        FontAwesomeIcons.google,
-        color: Colors.black,
-      ),
-      label: const Text(
-        'Continuar com Google',
-        style: TextStyle(
-          color: Colors.black,
-          fontSize: 18,
-        ),
-      ),
-      style: TextButton.styleFrom(
-        backgroundColor: Colors.transparent,
-        shape: RoundedRectangleBorder(
-          side: const BorderSide(
-            color: Colors.black,
-            width: 1.0,
-          ),
-          borderRadius: BorderRadius.circular(5.0),
-        ),
-        fixedSize: const Size(270, 50),
-      ),
-    ),
-  ),
+  const SizedBox(height: 20,),
+  const GoogleButton(),
   Padding(
     padding: const EdgeInsets.symmetric(vertical: 5.0),
     child: TextButton.icon(
