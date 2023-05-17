@@ -1,7 +1,11 @@
 
 import 'package:flutter/material.dart';
 
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 
 class PerfilEdit extends StatefulWidget {
@@ -12,15 +16,111 @@ class PerfilEdit extends StatefulWidget {
 }
 class _PerfilEditState extends State<PerfilEdit>{
 
+  final TextEditingController nomeController = TextEditingController();
+  final TextEditingController sobrenomeController = TextEditingController();
+  final TextEditingController cidadeController = TextEditingController();
+  final TextEditingController estadoController = TextEditingController();
+  final TextEditingController biografiaController = TextEditingController();
+  final TextEditingController dataNascimentoController = TextEditingController();
+  final TextEditingController pesoController = TextEditingController();
+
+  Map<String, dynamic> getModifiedFields() {
+  Map<String, dynamic> modifiedFields = {};
+
+  if (nomeController.text.isNotEmpty) {
+    modifiedFields['nome'] = nomeController.text;
+  }
+  if (sobrenomeController.text.isNotEmpty) {
+    modifiedFields['sobrenome'] = sobrenomeController.text;
+  }
+  if (cidadeController.text.isNotEmpty) {
+    modifiedFields['cidade'] = cidadeController.text;
+  }
+   if (estadoController.text.isNotEmpty) {
+    modifiedFields['estado'] = estadoController.text;
+  }
+    if (biografiaController.text.isNotEmpty) {
+    modifiedFields['bio'] = biografiaController.text;
+  }
+   if (dataNascimentoController.text.isNotEmpty) {
+    modifiedFields['dataDeNascimento'] = dataNascimentoController.text;
+  }
+   if (pesoController.text.isNotEmpty) {
+    modifiedFields['peso'] = pesoController.text;
+  }
+
+
+
+  return modifiedFields;
+}
+
+
+Future<void> updateUser(String id) async {
+
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    await dotenv.load(fileName: ".env");
+
+     String? apiUrl = dotenv.env['API_URL'];
+
+     String url = '$apiUrl/users/update/data/122';
+
+  try {
+
+    final modifiedFields = getModifiedFields();
+    final response = await http.patch(
+      Uri.parse(url),
+      body: jsonEncode(modifiedFields),
+         headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+
+      );
+
+    if (response.statusCode == 200) {
+
+      print('Usuário atualizado');
+    } else {
+
+      print('Erro durante a atualização do usuário: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Erro durante a solicitação HTTP: $e');
+  }
+}
+
+Future<void> fetchUserData() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
+
+  if (token != null) {
+    Map<String, dynamic> decodedToken = JwtDecoder.decode(token);
+
+    nomeController.text = decodedToken['nome'] ?? '';
+    sobrenomeController.text = decodedToken['sobrenome'] ?? '';
+    cidadeController.text = decodedToken['cidade'] ?? '';
+    estadoController.text = decodedToken['estado'] ?? '';
+    biografiaController.text = decodedToken['bio'] ?? '';
+    dataNascimentoController.text = decodedToken['dataDeNascimento'] ?? '';
+    pesoController.text = decodedToken['peso'] ?? '';
+  }
+}
+ @override
+void didChangeDependencies() {
+  super.didChangeDependencies();
+  fetchUserData();
+}
+
 @override
 Widget build(BuildContext context) {
   return Column(
     children: [
-      Padding(
-        padding: const EdgeInsets.only(top:40.0),
+      const Padding(
+        padding: EdgeInsets.only(top:40.0),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
+          children: [
             Icon(Icons.person_outline_rounded, size: 90),
             SizedBox(width: 20),
           ],
@@ -45,13 +145,14 @@ Widget build(BuildContext context) {
                   border: Border.all(width: 1.0, color: Colors.black45),
                   borderRadius: BorderRadius.circular(4.0),
                 ),
-                child: Column(
+                child:  Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children:  [
                     Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8.0),
+                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
                       child: TextField(
-                        decoration: InputDecoration(
+                        controller: nomeController,
+                        decoration: const InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Digite seu nome',
                         ),
@@ -80,10 +181,11 @@ Widget build(BuildContext context) {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: TextField(
+                        controller: sobrenomeController,
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Digite seu sobrenome',
@@ -112,10 +214,11 @@ Widget build(BuildContext context) {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children:  [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: TextField(
+                        controller: cidadeController,
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Cidade',
@@ -138,10 +241,11 @@ Widget build(BuildContext context) {
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children:  [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: TextField(
+                        controller: estadoController,
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Estado',
@@ -169,11 +273,12 @@ Row(
             border: Border.all(width: 1.0, color: Colors.black45),
             borderRadius: BorderRadius.circular(4.0),
           ),
-          child: Column(
-            children: const [
+          child:  Column(
+            children: [
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8.0),
                 child: TextField(
+                  controller: biografiaController,
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Biografia',
@@ -203,10 +308,11 @@ Row(
             borderRadius: BorderRadius.circular(4.0),
           ),
           child: Column(
-            children: const [
+            children: [
               Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8.0),
                 child: TextField(
+                  controller: dataNascimentoController,
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Data de nascimento',
@@ -234,13 +340,13 @@ Row(
                   border: Border.all(width: 1.0, color: Colors.black45),
                   borderRadius: BorderRadius.circular(4.0),
                 ),
-                child: Column(
+                child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: TextField(
-                        decoration: InputDecoration(
+                          decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Gênero',
                         ),
@@ -260,27 +366,47 @@ Row(
                   border: Border.all(width: 1.0, color: Colors.black45),
                   borderRadius: BorderRadius.circular(4.0),
                 ),
-                child: Column(
+                child:  Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8.0),
                       child: TextField(
+                        controller: pesoController,
                         decoration: InputDecoration(
                           border: InputBorder.none,
                           hintText: 'Peso',
                         ),
                       ),
                     ),
+
+
                   ],
                 ),
               ),
             ],
           ),
-
         ],
-
       ),
+          Padding(
+  padding: const EdgeInsets.all(16.0),
+  child: Center(
+    child: Column(
+      children: [
+        ElevatedButton(
+        onPressed: () {
+            updateUser('122');
+          },
+          style: ButtonStyle(
+            backgroundColor:
+                MaterialStateProperty.all(Color.fromRGBO(230, 230, 230, 1)),
+          ),
+          child: const Text('Concluído', style: TextStyle(color: Colors.black)),
+        ),
+      ],
+    ),
+  ),
+)
 
     ]
   );

@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+
 import 'package:http/http.dart' as http;
 import 'package:musclemate/components/home/home_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:musclemate/screen/forget_password/forget_password_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:musclemate/components/google/google_button.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -131,39 +131,7 @@ try {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top:20.0),
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                child: TextButton.icon(
-                  onPressed: null,
-                  icon: const FaIcon(
-                    FontAwesomeIcons.google,
-                    color: Colors.black,
-                  ),
-                  label: const Text(
-                    'Continuar com Google',
-                    style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
-                    ),
-                  ),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.transparent,
-                    shape: RoundedRectangleBorder(
-              side: const BorderSide(
-                color: Colors.black,
-                width: 1.0,
-              ),
-              borderRadius: BorderRadius.circular(5.0),
-                    ),
-                    fixedSize: const Size(270, 50),
-                  ),
-                ),
-              ),
-            ),
-          ),
+         const GoogleButton(),
           Center(
             child: Text(
             _errorMessage,
