@@ -1,14 +1,20 @@
 
+
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:musclemate/screen/perfil/followers/perfil_followers_page.dart';
 import 'package:musclemate/screen/perfil/followers/perfil_following_page.dart';
 import 'package:musclemate/screen/perfil/perfil_activitys_onpage.dart';
 
 import 'package:musclemate/screen/perfil/perfil_edit_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../screen/perfil/perfil_statistic_page.dart';
 
-
+import 'package:http/http.dart' as http;
 
 class Perfil extends StatefulWidget {
   const Perfil({Key? key}) : super(key: key);
@@ -51,35 +57,81 @@ class _PerfilState extends State<Perfil>{
     );
   }
 
+    String userName = '';
+
+     @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+  }
+
+
+ Future<void> fetchUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    await dotenv.load(fileName: ".env");
+
+    String? apiUrl = dotenv.env['API_URL'];
+
+    final userData = JwtDecoder.decode(token);
+    String userId = (userData['sub']);
+    String url = '$apiUrl/users/$userId';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+     final userData = jsonDecode(response.body) as Map<String, dynamic>;
+      setState(() {
+        userName=  userData['nome'] ?? '';
+
+      });
+
+      } else {
+        print('${response.statusCode}');
+      }
+    } catch (e) {
+      print('$e');
+    }
+  }
+
+
+
 @override
 Widget build(BuildContext context) {
   return Column(
     children: [
-      Row(
+       Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Padding(
-            padding: const EdgeInsets.only(top:30.0, left: 40.0),
+            padding: EdgeInsets.only(top:30.0, left: 40.0),
             child: Column(
-              children: const [
+              children: [
                 Icon(Icons.person_outline_rounded, size: 50),
               ],
             ),
           ),
-          const SizedBox(width: 20),
+          SizedBox(width: 10),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(top:20.0),
+              padding: EdgeInsets.only(top:20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(top:8.0),
+                    padding: EdgeInsets.only(top:8.0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      children: const [
+                      children: [
                         Text(
-                          'Marcos da Silva',
+                          userName,
                           style: TextStyle(fontSize: 18),
                         ),
                       ],

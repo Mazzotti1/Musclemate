@@ -71,9 +71,9 @@ public class UserController {
     }
 
     @PatchMapping("/update/email/{id}")
-    public ResponseEntity<User> updateUserEmail(@PathVariable Long id, @RequestBody UserUpdateForm updateForm, @RequestParam(value = "password", required = false) String password) {
+    public ResponseEntity<User> updateUserEmail(@PathVariable Long id, @RequestBody UserUpdateForm updateForm)  {
         try {
-            User updatedUserEmail = service.updateUserEmail(id, password, updateForm);
+            User updatedUserEmail = service.updateUserEmail(id, updateForm);
             return ResponseEntity.ok(updatedUserEmail);
         } catch (BadCredentialsException e) {
             return ResponseEntity.badRequest().body(null);

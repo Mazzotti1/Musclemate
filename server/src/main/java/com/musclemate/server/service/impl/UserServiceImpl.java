@@ -85,26 +85,32 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
 
 
 
-    public User updateUserEmail(Long id, String password, UserUpdateForm formUpdate) {
+    public User updateUserEmail(Long id, UserUpdateForm formUpdate) {
         User user = get(id);
         if (user == null) {
-            throw new BadCredentialsException("Usuário não encontrado.");
-        }
-        if (!getPasswordEncoder().matches(password, user.getPassword())) {
-            throw new BadCredentialsException("Senha incorreta.");
+            throw new RegistroIncorretoException("Usuário não encontrado.");
         }
 
         String newEmail = formUpdate.getEmail();
-        if (newEmail != null && !newEmail.equals(user.getEmail())) {
+        if (!newEmail.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
+            throw new RegistroIncorretoException("O email informado esta incorreto.");
+        }
 
+        if (newEmail != null && !newEmail.equals(user.getEmail())) {
             User existingUser = repository.findByEmail(newEmail);
             if (existingUser != null) {
-                throw new BadCredentialsException("Este email já está sendo usado por outro usuário.");
+                throw new RegistroIncorretoException("Este email ja esta sendo usado por outro usuario.");
             }
             user.setEmail(newEmail);
+        } else if (newEmail == null) {
+
+            throw new RegistroIncorretoException("O novo email não pode ser nulo.");
         }
+
         return repository.save(user);
     }
+
+
 
     public User updateUserData(Long id, UserUpdateForm formUpdate) {
         User user = get(id);

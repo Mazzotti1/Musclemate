@@ -1,9 +1,14 @@
 
 import 'package:flutter/material.dart';
+import 'package:musclemate/components/config/deleteAccount.dart';
+
 import 'package:musclemate/screen/home_config/about_page.dart';
 import 'package:musclemate/screen/home_config/change_email_page.dart';
 import 'package:musclemate/screen/home_config/faq_page.dart';
 import 'package:musclemate/screen/home_config/notification_config_page.dart';
+
+
+import 'logout.dart';
 
 
 class configuration extends StatefulWidget {
@@ -81,23 +86,10 @@ Widget build(BuildContext context) {
                 ),
               ),
               const SizedBox(height: 35),
-              TextButton(
-                onPressed: () {
-                  // ação a ser executada ao pressionar o botão
-                },
-                child: const Text('Excluir sua conta',
-                  style: TextStyle(fontSize: 17, color: Colors.red),
-                ),
-              ),
+              const deleteAccount(),
               const SizedBox(height: 35),
-              TextButton(
-                onPressed: () {
-                  // ação a ser executada ao pressionar o botão
-                },
-                child: const Text('Sair',
-                  style: TextStyle(fontSize: 17, color: Colors.red),
-                ),
-              ),
+             const logout()
+
             ],
           ),
         ],
