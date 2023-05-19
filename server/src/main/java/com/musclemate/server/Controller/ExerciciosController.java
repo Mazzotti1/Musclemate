@@ -12,6 +12,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,11 +30,14 @@ public class ExerciciosController{
     }
 
     @PostMapping
-    public ResponseEntity<String> chooseGroup(@RequestBody String groupName) {
-        List<String> exercicios = service.getGroupName(groupName);
+    public ResponseEntity<List<String>> chooseGroup(@RequestBody List<String> groupNames) {
+        if (groupNames == null || groupNames.isEmpty()) {
+            throw new RegistroIncorretoException("Escolha os grupos musculares do treino!");
+        }
 
-        return ResponseEntity.ok(groupName);
+        return ResponseEntity.ok(groupNames);
     }
+
 
     @GetMapping("/{grupoMuscular}")
     public ResponseEntity<List<String>> getExerciciosByGrupoMuscular(@PathVariable String grupoMuscular) {

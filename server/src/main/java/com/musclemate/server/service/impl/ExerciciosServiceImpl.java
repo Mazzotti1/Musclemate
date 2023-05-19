@@ -33,10 +33,6 @@ public class ExerciciosServiceImpl implements IExerciciosService {
     }
 
 
-    public List<String> getGroupName(String groupName) {
-        return null;
-    }
-
     public List<String> getExerciciosByGrupoMuscular(String grupoMuscular) {
 
         return repository.findByGrupoMuscular(grupoMuscular);

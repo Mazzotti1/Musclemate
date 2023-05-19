@@ -1,5 +1,8 @@
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 class recording extends StatefulWidget {
@@ -8,25 +11,68 @@ class recording extends StatefulWidget {
  @override
   _recordingState createState()=> _recordingState();
 }
-class _recordingState extends State<recording>{
+class _recordingState extends State<recording> {
+  late Timer timer;
+  int seconds = 0;
+  int minutes = 0;
+  int hours = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    startTimer();
+    _loadTextFromLocalStorage();
+  }
+
+  void startTimer() {
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      setState(() {
+        seconds++;
+        if (seconds >= 60) {
+          seconds = 0;
+          minutes++;
+          if (minutes >= 60) {
+            minutes = 0;
+            hours++;
+          }
+        }
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  String buttonText = '';
+  Future<void> _loadTextFromLocalStorage() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedText = prefs.getString('SelectedExercise');
+    setState(() {
+      buttonText = savedText!;
+    });
+  }
 
 @override
 Widget build(BuildContext context) {
+   String formattedTime =
+        '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   return Scaffold(
       body: Stack(
         children: [
-          // Seu conteúdo principal da página
           Positioned.fill(
             child: Column(
               children: [
-                Padding(
+                 Padding(
                   padding: const EdgeInsets.only(top: 20.0, right: 15),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: const [
-                      Icon(Icons.timer_sharp, color: Colors.black45, size: 50),
-                      SizedBox(width: 15,),
-                      Text('00:23:11', style: TextStyle(fontSize: 20),),
+                    children: [
+                      const Icon(Icons.timer_sharp, color: Colors.black45, size: 50),
+                      const SizedBox(width: 15,),
+                      Text(formattedTime, style: TextStyle(fontSize: 20),),
                     ],
                   ),
                 ),
@@ -44,21 +90,7 @@ Widget build(BuildContext context) {
                           backgroundColor: const Color.fromRGBO(217, 217, 217, 1),
                           minimumSize: const Size(100, 50),
                         ),
-                        child: const Text('Peito', style: TextStyle(color: Colors.black),),
-                      ),
-                    ),
-                    const SizedBox(width: 90,),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: TextButton(
-                        onPressed: () {
-                          // Ação quando o segundo TextButton for pressionado
-                        },
-                        style: TextButton.styleFrom(
-                          backgroundColor: const Color.fromRGBO(217, 217, 217, 1),
-                          minimumSize: const Size(100, 50),
-                        ),
-                        child: const Text('Ombros', style: TextStyle(color: Colors.black),),
+                        child:  Text(buttonText, style: const TextStyle(color: Colors.black),),
                       ),
                     ),
                   ],
@@ -72,10 +104,10 @@ Widget build(BuildContext context) {
                       color: const Color.fromRGBO(217, 217, 217, 1),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 20.0),
+                    child: const Padding(
+                      padding: EdgeInsets.only(left: 20.0),
                       child: Row(
-                        children: const [
+                        children: [
                           Icon(Icons.search, color: Colors.black45),
                           SizedBox(width: 5),
                           Expanded(
