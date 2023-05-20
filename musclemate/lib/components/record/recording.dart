@@ -1,9 +1,11 @@
 
 import 'dart:async';
 
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
 class recording extends StatefulWidget {
   const recording({Key? key}) : super(key: key);
@@ -22,6 +24,7 @@ class _recordingState extends State<recording> {
     super.initState();
     startTimer();
     _loadTextFromLocalStorage();
+    generateButtons();
   }
 
   void startTimer() {
@@ -46,14 +49,112 @@ class _recordingState extends State<recording> {
     super.dispose();
   }
 
-  String buttonText = '';
-  Future<void> _loadTextFromLocalStorage() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? savedText = prefs.getString('SelectedExercise');
+List<String> exerciseList = [];
+int selectedIndex = -1;
+
+//Carregar os grupos musculares escolhidos
+Future<void> _loadTextFromLocalStorage() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? savedText = prefs.getString('SelectedExercise');
+  if (savedText != null) {
     setState(() {
-      buttonText = savedText!;
+      exerciseList = savedText.split(","); // Converte a string em lista de strings
     });
   }
+}
+//Salvar a escolha do grupo muscular
+Future<void> _saveSelectedExercise(String exercise) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('Exercise', exercise);
+  print('Salvo: $exercise');
+}
+
+//Limpar o grupo muscular escolhido anteriormente
+Future<void> _clearSelectedExercise() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('Exercise');
+  print('clear');
+}
+
+//Gerar botões
+List<Widget> generateButtons() {
+  return exerciseList.asMap().entries.map((entry) {
+    final index = entry.key;
+    final exercise = entry.value;
+    final buttonText = exercise.replaceAll('[', '').replaceAll(']', '').replaceAll('"', '');
+
+    final isSelected = index == selectedIndex; // Verificar se o botão está selecionado
+
+//Rota GET dos exercicios
+Future<void> getExercises() async {
+   SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    String? savedExercise = prefs.getString('Exercise');
+    String exercicios = savedExercise?.replaceAll('[', '')?.replaceAll(']', '')?.replaceAll('"', '') ?? '';
+
+    await dotenv.load(fileName: ".env");
+
+     String? apiUrl = dotenv.env['API_URL'];
+
+
+     String url = '$apiUrl/exercicios/$exercicios';
+
+try {
+  final response = await http.get(
+    Uri.parse(url),
+     headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+  );
+
+ if (response.statusCode == 200) {
+
+  print(response.body);
+
+} else {
+  if (response.statusCode == 400) {
+
+    print('$Error');
+  } else {
+    setState(() {
+      print('Erro: ${response.statusCode}');
+    });
+  }
+}
+} catch (e) {
+  print('Erro: $e');
+}
+  }
+
+//Modelo botões
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 10.0, right: 10),
+        child: TextButton(
+          onPressed: () {
+            setState(() {
+              if (isSelected) {
+                selectedIndex = -1; // Desselecionar o botão
+                _clearSelectedExercise(); // Limpar a string salva
+              } else {
+                selectedIndex = index; // Selecionar o botão
+                _saveSelectedExercise(exercise);
+                getExercises(); // Salvar a string do botão
+              }
+            });
+          },
+          style: TextButton.styleFrom(
+            backgroundColor: isSelected ? const Color.fromRGBO(255, 204, 0, 1) : const Color.fromRGBO(217, 217, 217, 1),
+            minimumSize: const Size(100, 50),
+          ),
+          child: Text(buttonText, style: TextStyle(color: isSelected ? Colors.black : Colors.black)),
+        ),
+      ),
+    );
+  }).toList();
+}
 
 @override
 Widget build(BuildContext context) {
@@ -77,23 +178,12 @@ Widget build(BuildContext context) {
                   ),
                 ),
                 const SizedBox(height: 10,),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: TextButton(
-                        onPressed: () {
-                          // Ação quando o primeiro TextButton for pressionado
-                        },
-                        style: TextButton.styleFrom(
-                          backgroundColor: const Color.fromRGBO(217, 217, 217, 1),
-                          minimumSize: const Size(100, 50),
-                        ),
-                        child:  Text(buttonText, style: const TextStyle(color: Colors.black),),
-                      ),
-                    ),
-                  ],
+               SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: generateButtons(),
+                  ),
                 ),
                 const SizedBox(height: 20,),
                 Center(
@@ -124,6 +214,7 @@ Widget build(BuildContext context) {
                     ),
                   ),
                 ),
+
               ],
             ),
           ),
