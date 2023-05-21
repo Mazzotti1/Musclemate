@@ -1,11 +1,10 @@
 
 import 'dart:async';
 
-
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:musclemate/components/record/searchBar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
+
 
 class recording extends StatefulWidget {
   const recording({Key? key}) : super(key: key);
@@ -86,46 +85,7 @@ List<Widget> generateButtons() {
     final isSelected = index == selectedIndex; // Verificar se o botão está selecionado
 
 //Rota GET dos exercicios
-Future<void> getExercises() async {
-   SharedPreferences prefs = await SharedPreferences.getInstance();
-    String token = prefs.getString('token')!;
-    String? savedExercise = prefs.getString('Exercise');
-    String exercicios = savedExercise?.replaceAll('[', '')?.replaceAll(']', '')?.replaceAll('"', '') ?? '';
 
-    await dotenv.load(fileName: ".env");
-
-     String? apiUrl = dotenv.env['API_URL'];
-
-
-     String url = '$apiUrl/exercicios/$exercicios';
-
-try {
-  final response = await http.get(
-    Uri.parse(url),
-     headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-  );
-
- if (response.statusCode == 200) {
-
-  print(response.body);
-
-} else {
-  if (response.statusCode == 400) {
-
-    print('$Error');
-  } else {
-    setState(() {
-      print('Erro: ${response.statusCode}');
-    });
-  }
-}
-} catch (e) {
-  print('Erro: $e');
-}
-  }
 
 //Modelo botões
     return ClipRRect(
@@ -141,7 +101,6 @@ try {
               } else {
                 selectedIndex = index; // Selecionar o botão
                 _saveSelectedExercise(exercise);
-                getExercises(); // Salvar a string do botão
               }
             });
           },
@@ -160,121 +119,100 @@ try {
 Widget build(BuildContext context) {
    String formattedTime =
         '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Column(
-              children: [
-                 Padding(
-                  padding: const EdgeInsets.only(top: 20.0, right: 15),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.timer_sharp, color: Colors.black45, size: 50),
-                      const SizedBox(width: 15,),
-                      Text(formattedTime, style: TextStyle(fontSize: 20),),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10,),
-               SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: generateButtons(),
-                  ),
-                ),
-                const SizedBox(height: 20,),
-                Center(
-                  child: Container(
-                    width: 250,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color.fromRGBO(217, 217, 217, 1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.only(left: 20.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.search, color: Colors.black45),
-                          SizedBox(width: 5),
-                          Expanded(
-                            child: TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Encontre um exercício',
-                                hintStyle: TextStyle(color: Colors.black45),
-                                border: InputBorder.none,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-
-              ],
-            ),
-          ),
-          // O container fixo no bottom
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 55,
-            child: Container(
-              width: double.infinity,
-              height: 92,
-              color: const Color.fromRGBO(228, 232, 248, 1),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+  return GestureDetector(
+     onTap: () {
+        FocusScope.of(context).unfocus();
+      },
+    child: Scaffold(
+        body: Stack(
+          children: [
+            Positioned.fill(
+              child: Column(
                 children: [
-                  TextButton(
-                    onPressed: () {},
-                    style: ButtonStyle(
-                      elevation: MaterialStateProperty.all<double>(0),
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        const Color.fromRGBO(227, 227, 227, 1),
-                      ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
+                   Padding(
+                    padding: const EdgeInsets.only(top: 20.0, right: 15),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.timer_sharp, color: Colors.black45, size: 50),
+                        const SizedBox(width: 15,),
+                        Text(formattedTime, style: TextStyle(fontSize: 20),),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 10,),
+                 SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: generateButtons(),
+                    ),
+                  ),
+                  const SizedBox(height: 20,),
+
+                barraPesquisa()
+
+                ],
+              ),
+            ),
+            // O container fixo no bottom
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 55,
+              child: Container(
+                width: double.infinity,
+                height: 92,
+                color: const Color.fromRGBO(228, 232, 248, 1),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () {},
+                      style: ButtonStyle(
+                        elevation: MaterialStateProperty.all<double>(0),
+                        backgroundColor: MaterialStateProperty.all<Color>(
+                          const Color.fromRGBO(227, 227, 227, 1),
                         ),
-          ),
-          minimumSize: MaterialStateProperty.all<Size>(
-            const Size(80, 80),
-          ),
-        ),
-        child: const Text('Continuar', style: TextStyle(color: Colors.black)),
-      ),
-      const SizedBox(width: 20), // Adiciona um espaçamento entre os botões
-      TextButton(
-        onPressed: () {},
-        style: ButtonStyle(
-          elevation: MaterialStateProperty.all<double>(0),
-          backgroundColor: MaterialStateProperty.all<Color>(
-            const Color.fromRGBO(184, 0, 0, 1),
-          ),
-          shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-            RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(50),
+                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                          RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(50),
+                          ),
+            ),
+            minimumSize: MaterialStateProperty.all<Size>(
+              const Size(80, 80),
             ),
           ),
-          minimumSize: MaterialStateProperty.all<Size>(
-            const Size(80, 80),
-          ),
+          child: const Text('Continuar', style: TextStyle(color: Colors.black)),
         ),
-        child: const Text('Parar', style: TextStyle(color: Colors.white)),
-      ),
-    ],
-  ),
-)
-          )
-
-    ],
-
+        const SizedBox(width: 20), // Adiciona um espaçamento entre os botões
+        TextButton(
+          onPressed: () {},
+          style: ButtonStyle(
+            elevation: MaterialStateProperty.all<double>(0),
+            backgroundColor: MaterialStateProperty.all<Color>(
+              const Color.fromRGBO(184, 0, 0, 1),
+            ),
+            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+              RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(50),
+              ),
+            ),
+            minimumSize: MaterialStateProperty.all<Size>(
+              const Size(80, 80),
+            ),
+          ),
+          child: const Text('Parar', style: TextStyle(color: Colors.white)),
+        ),
+      ],
+    ),
   )
+            )
+
+      ],
+
+    )
+    ),
   );
 }
 
