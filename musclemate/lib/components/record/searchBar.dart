@@ -16,6 +16,11 @@ class _barraPesquisaState extends State<barraPesquisa> {
   List<String> searchResults = [];
   FocusNode _searchFocusNode = FocusNode();
 
+  List<String> selectedButtons = [];
+  String? selectedButtonName;
+  Map<String, bool> buttonVisibility = {};
+
+
   @override
   void initState() {
     super.initState();
@@ -25,7 +30,9 @@ class _barraPesquisaState extends State<barraPesquisa> {
     _clearSearch();
   }
 });
-
+selectedButtons.forEach((buttonName) {
+  buttonVisibility[buttonName] = false;
+});
   }
 
   @override
@@ -96,12 +103,21 @@ class _barraPesquisaState extends State<barraPesquisa> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Center(
+  void _closeOtherButtons(String buttonName) {
+  for (var name in selectedButtons) {
+    if (name != buttonName) {
+      buttonVisibility[name] = false;
+    }
+  }
+}
+
+ @override
+Widget build(BuildContext context) {
+  return Center(
+    child: SingleChildScrollView(
       child: Container(
         width: 240,
-        height: 300,
+        height: 400,
         decoration: BoxDecoration(
           color: const Color.fromRGBO(217, 217, 217, 0),
           borderRadius: BorderRadius.circular(10),
@@ -122,7 +138,7 @@ class _barraPesquisaState extends State<barraPesquisa> {
                         focusNode: _searchFocusNode,
                         onChanged: (searchText) {
                           _performSearch(searchText);
-                          getExercises(); // Chamar a função getExercises() aqui
+                          getExercises();
                         },
                         decoration: const InputDecoration(
                           hintText: 'Encontre um exercício',
@@ -143,22 +159,88 @@ class _barraPesquisaState extends State<barraPesquisa> {
                 child: ListView.builder(
                   itemCount: searchResults.length,
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      title: Text(searchResults[index]),
+                    final selectedButtonName = searchResults[index];
+                    return TextButton(
+                      onPressed: () {
+                        setState(() {
+                          selectedButtons.add(selectedButtonName);
+                          _closeOtherButtons(selectedButtonName);
+                        });
+                        _searchFocusNode.unfocus();
+                      },
+                      child: Text(
+                        selectedButtonName,
+                        style: const TextStyle(color: Colors.black, fontSize: 15),
+                      ),
                     );
                   },
+                ),
+              ),
+              Container(
+                height: 270,
+                child: Visibility(
+                  visible: selectedButtons.isNotEmpty,
+                  child: Expanded(
+                    child: Column(
+                      children: selectedButtons.map((buttonName) {
+                        return Column(
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                setState(() {
+                                  buttonVisibility[buttonName] =
+                                      buttonVisibility[buttonName] != null
+                                          ? !buttonVisibility[buttonName]!
+                                          : true;
+                                  _closeOtherButtons(buttonName);
+                                });
+                                _searchFocusNode.unfocus();
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    const Color.fromRGBO(228, 232, 248, 1),
+                                minimumSize: const Size(250, 40),
+                              ),
+                              child: Text(
+                                buttonName,
+                                style: const TextStyle(color: Colors.black),
+                              ),
+                            ),
+                            if (buttonVisibility[buttonName] == true)
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                curve: Curves.easeInOut,
+                                width: double.infinity,
+                                height: 50,
+                                color: Colors.grey,
+                                child: const Center(
+                                  child: Text(
+                                    'Conteúdo do container/modal',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
 }
+}
+
+
 
 class Content {
   final String title;
 
   Content(this.title);
 }
+
