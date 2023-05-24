@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:musclemate/components/record/contentButton.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -19,6 +20,7 @@ class _barraPesquisaState extends State<barraPesquisa> {
   List<String> selectedButtons = [];
   String? selectedButtonName;
   Map<String, bool> buttonVisibility = {};
+
 
 
   @override
@@ -111,12 +113,12 @@ selectedButtons.forEach((buttonName) {
   }
 }
 
- @override
+@override
 Widget build(BuildContext context) {
   return Center(
     child: SingleChildScrollView(
       child: Container(
-        width: 240,
+        width: 300,
         height: 400,
         decoration: BoxDecoration(
           color: const Color.fromRGBO(217, 217, 217, 0),
@@ -126,35 +128,39 @@ Widget build(BuildContext context) {
           padding: const EdgeInsets.only(left: 0.0),
           child: Column(
             children: [
-              Container(
-                alignment: Alignment.center,
-                child: Row(
-                  children: [
-                    const Icon(Icons.search, color: Colors.black45),
-                    const SizedBox(width: 5),
-                    Expanded(
-                      child: TextField(
-                        controller: _searchController,
-                        focusNode: _searchFocusNode,
-                        onChanged: (searchText) {
-                          _performSearch(searchText);
-                          getExercises();
-                        },
-                        decoration: const InputDecoration(
-                          hintText: 'Encontre um exercício',
-                          hintStyle: TextStyle(color: Colors.black45),
-                          border: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black45),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(color: Colors.black),
-                          ),
+           Center(
+            child: Container(
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.search, color: Colors.black45),
+                  const SizedBox(width: 5),
+                  Container(
+                    width: 180, // Definir a largura desejada para o TextField
+                    child: TextField(
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      onChanged: (searchText) {
+                        _performSearch(searchText);
+                        getExercises();
+                      },
+                      decoration: const InputDecoration(
+                        hintText: 'Encontre um exercício',
+                        hintStyle: TextStyle(color: Colors.black45),
+                        border: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black45),
+                        ),
+                        focusedBorder: UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
+          ),
               Expanded(
                 child: ListView.builder(
                   itemCount: searchResults.length,
@@ -162,10 +168,12 @@ Widget build(BuildContext context) {
                     final selectedButtonName = searchResults[index];
                     return TextButton(
                       onPressed: () {
-                        setState(() {
-                          selectedButtons.add(selectedButtonName);
-                          _closeOtherButtons(selectedButtonName);
-                        });
+                        if (!selectedButtons.contains(selectedButtonName)) {
+                          setState(() {
+                            selectedButtons.add(selectedButtonName);
+                            _closeOtherButtons(selectedButtonName);
+                          });
+                        }
                         _searchFocusNode.unfocus();
                       },
                       child: Text(
@@ -176,53 +184,46 @@ Widget build(BuildContext context) {
                   },
                 ),
               ),
-              Container(
+              SizedBox(
                 height: 270,
-                child: Visibility(
-                  visible: selectedButtons.isNotEmpty,
-                  child: Expanded(
-                    child: Column(
-                      children: selectedButtons.map((buttonName) {
-                        return Column(
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                setState(() {
-                                  buttonVisibility[buttonName] =
-                                      buttonVisibility[buttonName] != null
-                                          ? !buttonVisibility[buttonName]!
-                                          : true;
-                                  _closeOtherButtons(buttonName);
-                                });
-                                _searchFocusNode.unfocus();
-                              },
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    const Color.fromRGBO(228, 232, 248, 1),
-                                minimumSize: const Size(250, 40),
-                              ),
-                              child: Text(
-                                buttonName,
-                                style: const TextStyle(color: Colors.black),
-                              ),
-                            ),
-                            if (buttonVisibility[buttonName] == true)
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 200),
-                                curve: Curves.easeInOut,
-                                width: double.infinity,
-                                height: 50,
-                                color: Colors.grey,
-                                child: const Center(
+                child: SingleChildScrollView(
+                  child: Visibility(
+                    visible: selectedButtons.isNotEmpty,
+                    child: Expanded(
+                      child: Column(
+                        children: selectedButtons.map((buttonName) {
+                          return Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 6.0),
+                                child: ElevatedButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      buttonVisibility[buttonName] =
+                                          buttonVisibility[buttonName] != null
+                                              ? !buttonVisibility[buttonName]!
+                                              : true;
+                                      _closeOtherButtons(buttonName);
+                                    });
+                                    _searchFocusNode.unfocus();
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        const Color.fromRGBO(228, 232, 248, 1),
+                                    minimumSize: const Size(300, 40),
+                                  ),
                                   child: Text(
-                                    'Conteúdo do container/modal',
-                                    style: TextStyle(color: Colors.white),
+                                    buttonName,
+                                    style: const TextStyle(color: Colors.black),
                                   ),
                                 ),
                               ),
-                          ],
-                        );
-                      }).toList(),
+                            if (buttonVisibility[buttonName] == true)
+                                const contentButton()
+                            ],
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ),
                 ),

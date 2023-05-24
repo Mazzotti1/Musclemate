@@ -117,101 +117,44 @@ List<Widget> generateButtons() {
 
 @override
 Widget build(BuildContext context) {
-   String formattedTime =
-        '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  String formattedTime =
+      '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+
   return GestureDetector(
-     onTap: () {
-        FocusScope.of(context).unfocus();
-      },
+    onTap: () {
+      FocusScope.of(context).unfocus();
+    },
     child: Scaffold(
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: Column(
-                children: [
-                   Padding(
-                    padding: const EdgeInsets.only(top: 20.0, right: 15),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.timer_sharp, color: Colors.black45, size: 50),
-                        const SizedBox(width: 15,),
-                        Text(formattedTime, style: TextStyle(fontSize: 20),),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10,),
-                 SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: generateButtons(),
-                    ),
-                  ),
-                  const SizedBox(height: 20,),
-
-                barraPesquisa()
-
-                ],
-              ),
-            ),
-            // O container fixo no bottom
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 55,
-              child: Container(
-                width: double.infinity,
-                height: 92,
-                color: const Color.fromRGBO(228, 232, 248, 1),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(top: 20.0, right: 15),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    TextButton(
-                      onPressed: () {},
-                      style: ButtonStyle(
-                        elevation: MaterialStateProperty.all<double>(0),
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                          const Color.fromRGBO(227, 227, 227, 1),
-                        ),
-                        shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(50),
-                          ),
-            ),
-            minimumSize: MaterialStateProperty.all<Size>(
-              const Size(80, 80),
-            ),
-          ),
-          child: const Text('Continuar', style: TextStyle(color: Colors.black)),
-        ),
-        const SizedBox(width: 20), // Adiciona um espaçamento entre os botões
-        TextButton(
-          onPressed: () {},
-          style: ButtonStyle(
-            elevation: MaterialStateProperty.all<double>(0),
-            backgroundColor: MaterialStateProperty.all<Color>(
-              const Color.fromRGBO(184, 0, 0, 1),
-            ),
-            shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(50),
+                    const Icon(Icons.timer_sharp, color: Colors.black45, size: 50),
+                    const SizedBox(width: 15,),
+                    Text(formattedTime, style: TextStyle(fontSize: 20),),
+                  ],
+                ),
               ),
-            ),
-            minimumSize: MaterialStateProperty.all<Size>(
-              const Size(80, 80),
-            ),
+              const SizedBox(height: 10,),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: generateButtons(),
+                ),
+              ),
+              const SizedBox(height: 20,),
+              barraPesquisa()
+            ],
           ),
-          child: const Text('Parar', style: TextStyle(color: Colors.white)),
         ),
-      ],
-    ),
-  )
-            )
-
-      ],
-
-    )
+      ),
     ),
   );
 }
