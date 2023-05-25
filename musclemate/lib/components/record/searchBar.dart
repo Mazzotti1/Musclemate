@@ -113,10 +113,9 @@ selectedButtons.forEach((buttonName) {
   }
 }
 
-@override
-Widget build(BuildContext context) {
-  return Center(
-    child: SingleChildScrollView(
+ @override
+  Widget build(BuildContext context) {
+    return Center(
       child: Container(
         width: 300,
         height: 400,
@@ -128,70 +127,70 @@ Widget build(BuildContext context) {
           padding: const EdgeInsets.only(left: 0.0),
           child: Column(
             children: [
-           Center(
-            child: Container(
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.search, color: Colors.black45),
-                  const SizedBox(width: 5),
-                  Container(
-                    width: 180, // Definir a largura desejada para o TextField
-                    child: TextField(
-                      controller: _searchController,
-                      focusNode: _searchFocusNode,
-                      onChanged: (searchText) {
-                        _performSearch(searchText);
-                        getExercises();
-                      },
-                      decoration: const InputDecoration(
-                        hintText: 'Encontre um exercício',
-                        hintStyle: TextStyle(color: Colors.black45),
-                        border: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black45),
-                        ),
-                        focusedBorder: UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black),
+              Center(
+                child: Container(
+                  alignment: Alignment.center,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.search, color: Colors.black45),
+                      const SizedBox(width: 5),
+                      Container(
+                        width: 180, // Definir a largura desejada para o TextField
+                        child: TextField(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          onChanged: (searchText) {
+                            _performSearch(searchText);
+                            getExercises();
+                          },
+                          decoration: const InputDecoration(
+                            hintText: 'Encontre um exercício',
+                            hintStyle: TextStyle(color: Colors.black45),
+                            border: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black45),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(color: Colors.black),
+                            ),
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
               Expanded(
-                child: ListView.builder(
-                  itemCount: searchResults.length,
-                  itemBuilder: (context, index) {
-                    final selectedButtonName = searchResults[index];
-                    return TextButton(
-                      onPressed: () {
-                        if (!selectedButtons.contains(selectedButtonName)) {
-                          setState(() {
-                            selectedButtons.add(selectedButtonName);
-                            _closeOtherButtons(selectedButtonName);
-                          });
-                        }
-                        _searchFocusNode.unfocus();
-                      },
-                      child: Text(
-                        selectedButtonName,
-                        style: const TextStyle(color: Colors.black, fontSize: 15),
-                      ),
-                    );
-                  },
+                child: ListView(
+                  children: [
+                    ...searchResults.map((selectedButtonName) {
+                      return TextButton(
+                        onPressed: () {
+                          if (!selectedButtons.contains(selectedButtonName)) {
+                            setState(() {
+                              selectedButtons.add(selectedButtonName);
+                              _closeOtherButtons(selectedButtonName);
+                            });
+                          }
+                          _searchFocusNode.unfocus();
+                        },
+                        child: Text(
+                          selectedButtonName,
+                          style: const TextStyle(color: Colors.black, fontSize: 15),
+                        ),
+                      );
+                    }).toList(),
+                  ],
                 ),
               ),
               SizedBox(
                 height: 270,
-                child: SingleChildScrollView(
-                  child: Visibility(
-                    visible: selectedButtons.isNotEmpty,
-                    child: Expanded(
-                      child: Column(
-                        children: selectedButtons.map((buttonName) {
+                child: Visibility(
+                  visible: selectedButtons.isNotEmpty,
+                  child: Expanded(
+                    child: ListView(
+                      children: [
+                        ...selectedButtons.map((buttonName) {
                           return Column(
                             children: [
                               Padding(
@@ -218,12 +217,12 @@ Widget build(BuildContext context) {
                                   ),
                                 ),
                               ),
-                            if (buttonVisibility[buttonName] == true)
-                                const contentButton()
+                              if (buttonVisibility[buttonName] == true)
+                                const ContentButton(),
                             ],
                           );
                         }).toList(),
-                      ),
+                      ],
                     ),
                   ),
                 ),
@@ -232,9 +231,8 @@ Widget build(BuildContext context) {
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 

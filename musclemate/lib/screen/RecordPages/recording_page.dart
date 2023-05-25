@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musclemate/components/record/recording.dart';
 import 'package:musclemate/screen/home_config/configuration_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RecordingPage extends StatefulWidget {
   const RecordingPage({Key? key}) : super(key: key);
@@ -17,6 +18,12 @@ class _RecordingPageState extends State<RecordingPage> {
     );
   }
 
+  void resetData() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('seriesData');
+}
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,6 +33,7 @@ class _RecordingPageState extends State<RecordingPage> {
         title: IconButton(
           onPressed: () {
             Navigator.pop(context);
+            resetData();
           },
           icon: const Icon(Icons.arrow_back),
         ),
