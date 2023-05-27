@@ -3,6 +3,8 @@ import 'package:musclemate/components/record/recording.dart';
 import 'package:musclemate/screen/home_config/configuration_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
+
 class RecordingPage extends StatefulWidget {
   const RecordingPage({Key? key}) : super(key: key);
 
@@ -10,7 +12,10 @@ class RecordingPage extends StatefulWidget {
   _RecordingPageState createState() => _RecordingPageState();
 }
 
+
 class _RecordingPageState extends State<RecordingPage> {
+
+
   void _navigateToConfigurations() {
     Navigator.push(
       context,
@@ -18,10 +23,7 @@ class _RecordingPageState extends State<RecordingPage> {
     );
   }
 
-  void resetData() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.remove('seriesData');
-}
+
 
 
   @override
@@ -33,7 +35,7 @@ class _RecordingPageState extends State<RecordingPage> {
         title: IconButton(
           onPressed: () {
             Navigator.pop(context);
-            resetData();
+
           },
           icon: const Icon(Icons.arrow_back),
         ),
@@ -44,63 +46,15 @@ class _RecordingPageState extends State<RecordingPage> {
           ),
         ],
       ),
-      body: Stack(
+      body: const Stack(
         children: [
-          const recording(),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 55,
-            child: Container(
-              width: double.infinity,
-              height: 92,
-              color: const Color.fromRGBO(228, 232, 248, 1),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  TextButton(
-                    onPressed: () {},
-                    style: ButtonStyle(
-                      elevation: MaterialStateProperty.all<double>(0),
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        const Color.fromRGBO(227, 227, 227, 1),
-                      ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                      minimumSize: MaterialStateProperty.all<Size>(
-                        const Size(80, 80),
-                      ),
-                    ),
-                    child: const Text('Continuar', style: TextStyle(color: Colors.black)),
-                  ),
-                  const SizedBox(width: 20), // Adiciona um espaçamento entre os botões
-                  TextButton(
-                    onPressed: () {},
-                    style: ButtonStyle(
-                      elevation: MaterialStateProperty.all<double>(0),
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        const Color.fromRGBO(184, 0, 0, 1),
-                      ),
-                      shape: MaterialStateProperty.all<RoundedRectangleBorder>(
-                        RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(50),
-                        ),
-                      ),
-                      minimumSize: MaterialStateProperty.all<Size>(
-                        const Size(80, 80),
-                      ),
-                    ),
-                    child: const Text('Parar', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
-              ),
-            ),
-          ),
+          recording(),
+
+
+
         ],
       ),
     );
   }
 }
+

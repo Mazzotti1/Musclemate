@@ -113,6 +113,8 @@ selectedButtons.forEach((buttonName) {
   }
 }
 
+
+
  @override
   Widget build(BuildContext context) {
     return Center(
@@ -217,8 +219,9 @@ selectedButtons.forEach((buttonName) {
                                   ),
                                 ),
                               ),
-                              if (buttonVisibility[buttonName] == true)
-                                const ContentButton(),
+                             if (buttonVisibility[buttonName] == true)
+                              ContentButton(buttonName: buttonName),
+
                             ],
                           );
                         }).toList(),
