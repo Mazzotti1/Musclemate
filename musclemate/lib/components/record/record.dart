@@ -34,7 +34,7 @@ late List<bool> checkedList = List.filled(items.length, false);
   void _openRecordingPage() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const RecordingPage()),
+      MaterialPageRoute(builder: (context) => const RecordingPage(buttonName: '',)),
     );
   }
 

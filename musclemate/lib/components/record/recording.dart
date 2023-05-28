@@ -115,8 +115,18 @@ List<Widget> generateButtons() {
   }).toList();
 }
 
+void _handleButtonSelected(String buttonName) {
+  setState(() {
+    // Adicione o botão selecionado à lista de botões do componente pai
+    exerciseList.add(buttonName);
+  });
+}
+
 @override
 Widget build(BuildContext context) {
+  barraPesquisa(
+  onButtonSelected: _handleButtonSelected,
+  );
   String formattedTime =
       '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 
@@ -124,6 +134,7 @@ Widget build(BuildContext context) {
     onTap: () {
       FocusScope.of(context).unfocus();
     },
+
     child: Scaffold(
       body: SingleChildScrollView(
         child: Padding(
@@ -150,7 +161,7 @@ Widget build(BuildContext context) {
                 ),
               ),
               const SizedBox(height: 20,),
-              barraPesquisa()
+              barraPesquisa(onButtonSelected: (String ) {  },),
             ],
           ),
         ),
@@ -158,5 +169,5 @@ Widget build(BuildContext context) {
     ),
   );
 }
-
 }
+

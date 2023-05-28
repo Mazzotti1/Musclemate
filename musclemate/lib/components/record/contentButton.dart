@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/cupertino.dart';
 
 
 class ContentButton extends StatefulWidget {
@@ -52,6 +53,9 @@ Future<void> saveData() async {
   await prefs.setInt('series_$buttonKey', numberOfLines);
   await prefs.setStringList('reps_$buttonKey', repsList);
   await prefs.setStringList('kgs_$buttonKey', kgsList);
+  print('series:$numberOfLines');
+  print('rep:$repsList');
+  print('kgs:$kgsList');
 }
 
 
@@ -84,7 +88,75 @@ Future<void> loadData() async {
 }
 
 
+Future<void> clearData() async {
+  final prefs = await SharedPreferences.getInstance();
+  final buttonKey = widget.buttonName;
 
+  await prefs.remove('series_$buttonKey');
+  await prefs.remove('reps_$buttonKey');
+  await prefs.remove('kgs_$buttonKey');
+
+  setState(() {
+    numberOfLines = 0;
+    repsList.clear();
+    kgsList.clear();
+    repsControllers.clear();
+    kgsControllers.clear();
+  });
+}
+
+Future<void> showModal(BuildContext context, int index) async {
+  final TextEditingController repsController =
+      TextEditingController(text: repsList[index]);
+  final TextEditingController kgsController =
+      TextEditingController(text: kgsList[index]);
+
+  await showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('${getOrdinal(index + 1)} Série'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: repsController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: 'Repetições',
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: kgsController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                hintText: 'Kg',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () async {
+            setState(() {
+              repsList[index] = repsController.text;
+              kgsList[index] = kgsController.text;
+            });
+            await saveData(); // Salva os valores atualizados
+
+            // Recarrega os valores salvos
+            await loadData();
+
+            Navigator.of(context).pop();
+          },
+            child: const Text('Salvar',),
+          ),
+        ],
+      );
+    },
+  );
+}
 
 
   @override
@@ -104,36 +176,66 @@ Future<void> loadData() async {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Row(
                   children: [
-                    Expanded(
-                      child: Text('${getOrdinal(i + 1)} Série'),
-                    ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: TextField(
-                       controller: (repsControllers.isNotEmpty && i < repsControllers.length) ? repsControllers[i] : TextEditingController(),
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          hintText: 'Reps',
+                      child: GestureDetector(
+                      onTap: () => showModal(context, i),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text('${getOrdinal(i + 1)} Série'),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: TextField(
+                                    enabled: false,
+                                    controller: (repsControllers.isNotEmpty && i < repsControllers.length)
+                                        ? repsControllers[i]
+                                        : TextEditingController(),
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      hintText: 'nº',
+                                    ),
+                                  ),
+                                ),
+                                 const Expanded(
+                                  child: Text('Reps', style: TextStyle(fontSize: 12),),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                const SizedBox(width: 8),
+                            Expanded(
+                              child: TextField(
+                                enabled: false,
+                                controller: (kgsControllers.isNotEmpty && i < kgsControllers.length)
+                                    ? kgsControllers[i]
+                                    : TextEditingController(),
+                                keyboardType: TextInputType.number,
+                                decoration: const InputDecoration(
+                                  hintText: 'nº',
+                                ),
+                              ),
+                            ),
+                            const Expanded(
+                                child: Text('Kg',style: TextStyle(fontSize: 12),),
+                            ),
+                          ],
                         ),
-                        onChanged: (value) {
-                          repsList[i] = value;
-                          saveData();
-                        },
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                       controller: (kgsControllers.isNotEmpty && i < kgsControllers.length) ? kgsControllers[i] : TextEditingController(),
-                        keyboardType: TextInputType.number,
-                        decoration: const InputDecoration(
-                          hintText: 'Kg',
-                        ),
-                        onChanged: (value) {
-                          kgsList[i] = value;
-                          saveData();
-                        },
-                      ),
+                    ],
+                  ),
+                ),
+
+
                     ),
                   ],
                 ),
@@ -157,7 +259,13 @@ Future<void> loadData() async {
                 ),
               ],
             ),
-
+          ElevatedButton(
+            onPressed: () {
+              clearData();
+              // Outras ações que você deseja realizar após limpar os dados
+            },
+            child: const Text('Limpar Todos os Dados'),
+          )
           ],
         ),
       ),

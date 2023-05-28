@@ -7,6 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 class barraPesquisa extends StatefulWidget {
+  final Function(String) onButtonSelected;
+
+  const barraPesquisa({Key? key, required this.onButtonSelected}) : super(key: key);
+
   @override
   _barraPesquisaState createState() => _barraPesquisaState();
 }
@@ -117,8 +121,7 @@ selectedButtons.forEach((buttonName) {
 
  @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Container(
+    return  Container(
         width: 300,
         height: 400,
         decoration: BoxDecoration(
@@ -167,25 +170,29 @@ selectedButtons.forEach((buttonName) {
                   children: [
                     ...searchResults.map((selectedButtonName) {
                       return TextButton(
-                        onPressed: () {
-                          if (!selectedButtons.contains(selectedButtonName)) {
-                            setState(() {
-                              selectedButtons.add(selectedButtonName);
-                              _closeOtherButtons(selectedButtonName);
-                            });
-                          }
-                          _searchFocusNode.unfocus();
-                        },
-                        child: Text(
-                          selectedButtonName,
-                          style: const TextStyle(color: Colors.black, fontSize: 15),
-                        ),
-                      );
+                      onPressed: () {
+                        if (!selectedButtons.contains(selectedButtonName)) {
+                          setState(() {
+                            selectedButtons.add(selectedButtonName);
+                            _closeOtherButtons(selectedButtonName);
+                          });
+
+                          // Chame a função de callback do componente pai
+                          widget.onButtonSelected(selectedButtonName);
+                        }
+                        _searchFocusNode.unfocus();
+                      },
+                      child: Text(
+                        selectedButtonName,
+                        style: const TextStyle(color: Colors.black, fontSize: 15),
+                      ),
+                    );
+
                     }).toList(),
                   ],
                 ),
               ),
-              SizedBox(
+              Container(
                 height: 270,
                 child: Visibility(
                   visible: selectedButtons.isNotEmpty,
@@ -233,7 +240,6 @@ selectedButtons.forEach((buttonName) {
             ],
           ),
         ),
-      ),
     );
   }
 }
