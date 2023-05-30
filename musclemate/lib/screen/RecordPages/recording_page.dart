@@ -47,38 +47,6 @@ class _RecordingPageState extends State<RecordingPage> {
       body:  Stack(
         children: [
           const recording(),
-         Positioned(
-  left: 0,
-  right: 0,
-  bottom: 55,
-  child: Container(
-    width: double.infinity,
-    height: 92,
-    color: const Color.fromRGBO(228, 232, 248, 1),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Color.fromRGBO(184, 0, 0, 1),
-          ),
-          child: IconButton(
-            onPressed: () {},
-            icon: const Icon(
-              Icons.square,
-              color: Colors.white,
-              size: 35,
-            ),
-            iconSize: 60,
-          ),
-        ),
-      ],
-    ),
-  ),
-),
 
         ],
       ),

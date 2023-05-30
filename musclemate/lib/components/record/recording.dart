@@ -1,11 +1,16 @@
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:musclemate/components/record/searchBar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
 
-
+import 'package:intl/intl.dart';
+import 'dart:math';
 class recording extends StatefulWidget {
   const recording({Key? key}) : super(key: key);
 
@@ -17,6 +22,12 @@ class _recordingState extends State<recording> {
   int seconds = 0;
   int minutes = 0;
   int hours = 0;
+  bool isPaused = false;
+
+  bool showCompleteButton = false;
+  bool showContinueButton = false;
+
+  Duration pausedDuration = Duration.zero;
 
   @override
   void initState() {
@@ -26,19 +37,21 @@ class _recordingState extends State<recording> {
     generateButtons();
   }
 
-  void startTimer() {
+    void startTimer() {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-        seconds++;
-        if (seconds >= 60) {
-          seconds = 0;
-          minutes++;
-          if (minutes >= 60) {
-            minutes = 0;
-            hours++;
+      if (!isPaused) { // Verificar se o timer não está pausado
+        setState(() {
+          seconds++;
+          if (seconds >= 60) {
+            seconds = 0;
+            minutes++;
+            if (minutes >= 60) {
+              minutes = 0;
+              hours++;
+            }
           }
-        }
-      });
+        });
+      }
     });
   }
 
@@ -75,6 +88,22 @@ Future<void> _clearSelectedExercise() async {
   print('clear');
 }
 
+// Salvar tempo de pausa do timer
+Future<void> _savePausedDuration(Duration duration) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String formattedDuration = '${duration.inHours.toString().padLeft(2, '0')}:${(duration.inMinutes % 60).toString().padLeft(2, '0')}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
+  await prefs.setString('PausedDuration', formattedDuration);
+}
+
+
+
+//Limpar tempo de pausa do timer
+Future<void> _clearPausedDuration() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.remove('PausedDuration');
+}
+
+
 //Gerar botões
 List<Widget> generateButtons() {
   return exerciseList.asMap().entries.map((entry) {
@@ -83,8 +112,6 @@ List<Widget> generateButtons() {
     final buttonText = exercise.replaceAll('[', '').replaceAll(']', '').replaceAll('"', '');
 
     final isSelected = index == selectedIndex; // Verificar se o botão está selecionado
-
-//Rota GET dos exercicios
 
 
 //Modelo botões
@@ -122,13 +149,74 @@ void _handleButtonSelected(String buttonName) {
   });
 }
 
+Future<void> saveTraining() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    String trainingType = prefs.getString('SelectedExercise')!;
+    String time = prefs.getString('PausedDuration')!;
+    int savedRepsTotais = prefs.getInt('repsTotais') ?? 0;
+    double savedKgsTotais = prefs.getDouble('kgsTotais') ?? 0.0;
+    int seriesTotais = prefs.getInt('seriesTotais') ?? 0;
+
+    double mediaDePesoUtilizado = savedKgsTotais / seriesTotais;
+    double mediaDePesoUtilizadoArredondada = mediaDePesoUtilizado.ceilToDouble();
+
+    String currentDate = DateFormat('dd/MM/yyyy').format(DateTime.now());
+    await dotenv.load(fileName: ".env");
+
+     String? apiUrl = dotenv.env['API_URL'];
+    final userTokenData = JwtDecoder.decode(token);
+    String userId = (userTokenData['sub']);
+     String url = '$apiUrl/treinos';
+
+  Map<String, dynamic> userData = {
+  "tipoDeTreino": trainingType,
+  "totalDeRepeticoes": savedRepsTotais,
+  "mediaDePesoUtilizado": mediaDePesoUtilizadoArredondada,
+  "dataDoTreino": currentDate,
+  "tempo": time,
+  "totalDeSeries": seriesTotais,
+	"user":{"id":userId}
+  };
+
+    String jsonData = jsonEncode(userData);
+try {
+  final response = await http.post(
+    Uri.parse(url),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonData,
+  );
+
+ if (response.statusCode == 200) {
+
+  print(response.body);
+
+} else {
+  if (response.statusCode == 400) {
+    final error = jsonDecode(response.body)['error'];
+  print('Erro: $error');
+  } else {
+    setState(() {
+      print('Erro: ${response.statusCode}');
+    });
+  }
+}
+} catch (e) {
+  print('Erro: $e');
+}
+  }
+
+
 @override
 Widget build(BuildContext context) {
   barraPesquisa(
   onButtonSelected: _handleButtonSelected,
   );
-  String formattedTime =
-      '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  String formattedTime = '${(hours + pausedDuration.inHours).toString().padLeft(2, '0')}:${((minutes + pausedDuration.inMinutes) % 60).toString().padLeft(2, '0')}:${((seconds + pausedDuration.inSeconds) % 60).toString().padLeft(2, '0')}';
+
 
   return GestureDetector(
     onTap: () {
@@ -136,38 +224,144 @@ Widget build(BuildContext context) {
     },
 
     child: Scaffold(
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(top: 20.0, right: 15),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+      body: Column(
+        children: [
+          Expanded(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
                   children: [
-                    const Icon(Icons.timer_sharp, color: Colors.black45, size: 50),
-                    const SizedBox(width: 15,),
-                    Text(formattedTime, style: TextStyle(fontSize: 20),),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 20.0, right: 15),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.timer_sharp, color: Colors.black45, size: 50),
+                          const SizedBox(width: 15,),
+                          Text(formattedTime, style: TextStyle(fontSize: 20),),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 10,),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: generateButtons(),
+                      ),
+                    ),
+                    const SizedBox(height: 20,),
+                    barraPesquisa(onButtonSelected: (String ) {  },),
                   ],
                 ),
               ),
-              const SizedBox(height: 10,),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: generateButtons(),
-                ),
-              ),
-              const SizedBox(height: 20,),
-              barraPesquisa(onButtonSelected: (String ) {  },),
-            ],
+            ),
           ),
+         Padding(
+  padding: const EdgeInsets.only(bottom: 56.0),
+  child: Container(
+    width: double.infinity,
+    height: 92,
+    color: const Color.fromRGBO(228, 232, 248, 1),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (!showCompleteButton && !showContinueButton) // Exibir o botão de pausa
+          Container(
+            width: 70,
+            height: 70,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color.fromRGBO(184, 0, 0, 1),
+            ),
+            child: IconButton(
+              onPressed: () {
+                setState(() {
+                  isPaused = !isPaused; // Inverter o estado de pausa do timer
+
+                      if (isPaused) {
+                      pausedDuration += Duration(hours: hours, minutes: minutes, seconds: seconds);
+                      // Redefinir os contadores de tempo
+                      seconds = 0;
+                      minutes = 0;
+                      hours = 0;
+
+                      _savePausedDuration(pausedDuration);
+                    }
+
+
+                  // Mostrar os botões apropriados com base no estado de pausa
+                  showCompleteButton = isPaused;
+                  showContinueButton = isPaused;
+                });
+              },
+              icon: const Icon(
+                Icons.square,
+                color: Colors.white,
+                size: 28,
+              ),
+              iconSize: 60,
+            ),
+          ),
+        if (showCompleteButton) // Exibir o botão "Concluir"
+          Container(
+            width: 70,
+            height: 70,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Color.fromRGBO(215, 242, 132, 1),
+
+            ),
+            child: IconButton(
+              onPressed: () {
+                // Lógica para lidar com o botão "Concluir"
+                saveTraining();
+              },
+            icon: const Icon(
+                Icons.check,
+                color: Colors.black,
+                size: 30,
+              ),
+              iconSize: 60,
+            ),
+          ),
+        if (showContinueButton)
+        const SizedBox(width: 40,),
+        if (showContinueButton) // Exibir o botão "Continuar"
+          Container(
+            width: 70,
+            height: 70,
+            decoration:  BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.transparent,
+              border: Border.all(color: Colors.black, width: 2.0),
+            ),
+            child: IconButton(
+              onPressed: () {
+                setState(() {
+                  isPaused = !isPaused;
+                  showCompleteButton = false;
+                  showContinueButton = false;
+                  _clearPausedDuration();
+                });
+              },
+              icon: const Icon(
+                Icons.play_arrow,
+                color: Colors.black,
+                size: 30,
+              ),
+              iconSize: 60,
+            ),
+          ),
+      ],
+    ),
+  ),
+),
+
+          ],
         ),
       ),
-    ),
-  );
+    );
+  }
 }
-}
-

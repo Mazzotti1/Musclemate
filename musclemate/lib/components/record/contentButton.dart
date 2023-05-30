@@ -14,11 +14,15 @@ class ContentButton extends StatefulWidget {
 
 class _ContentButtonState extends State<ContentButton> {
   int numberOfLines = 0;
+
   List<String> repsList = [];
   List<String> kgsList = [];
   List<TextEditingController> repsControllers = [];
   List<TextEditingController> kgsControllers = [];
 
+  int seriesTotais=0;
+  int repsTotais = 0;
+  double kgsTotais = 0;
 
 @override
 void initState() {
@@ -46,16 +50,36 @@ void initState() {
     }
   }
 
+
+Future<void> saveTotal() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  int savedRepsTotais = prefs.getInt('repsTotais') ?? 0;
+  double savedKgsTotais = prefs.getDouble('kgsTotais') ?? 0.0;
+
+  int updatedRepsTotais = savedRepsTotais + repsTotais;
+  double updatedKgsTotais = savedKgsTotais + kgsTotais;
+
+  await prefs.setInt('repsTotais', updatedRepsTotais);
+  await prefs.setDouble('kgsTotais', updatedKgsTotais);
+
+  print(updatedRepsTotais);
+  print(updatedKgsTotais);
+}
+
+
+
+
+
 Future<void> saveData() async {
   final prefs = await SharedPreferences.getInstance();
-  final buttonKey = widget.buttonName; // Obtém o nome do botão selecionado
+  final buttonKey = widget.buttonName;
 
   await prefs.setInt('series_$buttonKey', numberOfLines);
   await prefs.setStringList('reps_$buttonKey', repsList);
   await prefs.setStringList('kgs_$buttonKey', kgsList);
-  print('series:$numberOfLines');
-  print('rep:$repsList');
-  print('kgs:$kgsList');
+  await prefs.setInt('seriesTotais', seriesTotais);
+
 }
 
 
@@ -65,11 +89,15 @@ Future<void> loadData() async {
 
   setState(() {
     numberOfLines = prefs.getInt('series_$buttonKey') ?? 0;
+    seriesTotais = prefs.getInt('seriesTotais') ?? 0;
     repsList = prefs.getStringList('reps_$buttonKey') ?? [];
     kgsList = prefs.getStringList('kgs_$buttonKey') ?? [];
 
+
     repsControllers.clear();
     kgsControllers.clear();
+
+
 
     for (int i = 0; i < numberOfLines; i++) {
       if (i < repsList.length) {
@@ -84,8 +112,12 @@ Future<void> loadData() async {
         kgsControllers.add(TextEditingController());
       }
     }
+
   });
+
+
 }
+
 
 
 Future<void> clearData() async {
@@ -95,6 +127,9 @@ Future<void> clearData() async {
   await prefs.remove('series_$buttonKey');
   await prefs.remove('reps_$buttonKey');
   await prefs.remove('kgs_$buttonKey');
+  await prefs.remove('seriesTotais');
+  await prefs.remove('repsTotais');
+  await prefs.remove('kgsTotais');
 
   setState(() {
     numberOfLines = 0;
@@ -103,6 +138,7 @@ Future<void> clearData() async {
     repsControllers.clear();
     kgsControllers.clear();
   });
+
 }
 
 Future<void> showModal(BuildContext context, int index) async {
@@ -110,6 +146,7 @@ Future<void> showModal(BuildContext context, int index) async {
       TextEditingController(text: repsList[index]);
   final TextEditingController kgsController =
       TextEditingController(text: kgsList[index]);
+
 
   await showDialog(
     context: context,
@@ -142,11 +179,14 @@ Future<void> showModal(BuildContext context, int index) async {
             setState(() {
               repsList[index] = repsController.text;
               kgsList[index] = kgsController.text;
-            });
-            await saveData(); // Salva os valores atualizados
+              repsTotais = int.parse(repsController.text);
+              kgsTotais = double.parse(kgsController.text);
 
-            // Recarrega os valores salvos
+            });
+            await saveTotal();
+            await saveData();
             await loadData();
+
 
             Navigator.of(context).pop();
           },
@@ -246,10 +286,13 @@ Future<void> showModal(BuildContext context, int index) async {
                 TextButton.icon(
                   onPressed: () {
                     setState(() {
+                      seriesTotais++;
                       numberOfLines++;
                       repsList.add('');
                       kgsList.add('');
+                      saveData();
                     });
+
                   },
                   icon: const Icon(Icons.add, color: Colors.black),
                   label: const Text(
