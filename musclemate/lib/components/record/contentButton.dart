@@ -6,7 +6,8 @@ import 'package:flutter/cupertino.dart';
 class ContentButton extends StatefulWidget {
   final String buttonName;
 
-  const ContentButton({Key? key, required this.buttonName}) : super(key: key);
+
+  const ContentButton({Key? key, required this.buttonName,}) : super(key: key);
 
   @override
   _ContentButtonState createState() => _ContentButtonState();
@@ -23,6 +24,8 @@ class _ContentButtonState extends State<ContentButton> {
   int seriesTotais=0;
   int repsTotais = 0;
   double kgsTotais = 0;
+
+
 
 @override
 void initState() {
@@ -97,7 +100,10 @@ Future<void> loadData() async {
     repsControllers.clear();
     kgsControllers.clear();
 
-
+    print(numberOfLines);
+     print(seriesTotais);
+      print(repsList);
+       print(kgsList);
 
     for (int i = 0; i < numberOfLines; i++) {
       if (i < repsList.length) {
@@ -120,7 +126,7 @@ Future<void> loadData() async {
 
 
 
-Future<void> clearData() async {
+ Future<void> clearData() async {
   final prefs = await SharedPreferences.getInstance();
   final buttonKey = widget.buttonName;
 
@@ -130,7 +136,7 @@ Future<void> clearData() async {
   await prefs.remove('seriesTotais');
   await prefs.remove('repsTotais');
   await prefs.remove('kgsTotais');
-
+print('limpou tudo');
   setState(() {
     numberOfLines = 0;
     repsList.clear();
@@ -138,8 +144,9 @@ Future<void> clearData() async {
     repsControllers.clear();
     kgsControllers.clear();
   });
-
 }
+
+
 
 Future<void> showModal(BuildContext context, int index) async {
   final TextEditingController repsController =
@@ -214,70 +221,109 @@ Future<void> showModal(BuildContext context, int index) async {
             for (int i = 0; i < numberOfLines; i++)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: GestureDetector(
-                      onTap: () => showModal(context, i),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text('${getOrdinal(i + 1)} Série'),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: TextField(
-                                    enabled: false,
-                                    controller: (repsControllers.isNotEmpty && i < repsControllers.length)
-                                        ? repsControllers[i]
-                                        : TextEditingController(),
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      hintText: 'nº',
+                child: Expanded(
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: GestureDetector(
+                        onTap: () => showModal(context, i),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text('${getOrdinal(i + 1)} Série'),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: TextField(
+                                      enabled: false,
+                                      controller: (repsControllers.isNotEmpty && i < repsControllers.length)
+                                          ? repsControllers[i]
+                                          : TextEditingController(),
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(
+                                        hintText: 'nº',
+                                      ),
                                     ),
                                   ),
-                                ),
-                                 const Expanded(
-                                  child: Text('Reps', style: TextStyle(fontSize: 12),),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Row(
-                              children: [
-                                const SizedBox(width: 8),
-                            Expanded(
-                              child: TextField(
-                                enabled: false,
-                                controller: (kgsControllers.isNotEmpty && i < kgsControllers.length)
-                                    ? kgsControllers[i]
-                                    : TextEditingController(),
-                                keyboardType: TextInputType.number,
-                                decoration: const InputDecoration(
-                                  hintText: 'nº',
-                                ),
+                                   const Expanded(
+                                    child: Text('Reps', style: TextStyle(fontSize: 12),),
+                                  ),
+                                ],
                               ),
                             ),
-                            const Expanded(
-                                child: Text('Kg',style: TextStyle(fontSize: 12),),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  const SizedBox(width: 8),
+                              Expanded(
+                                child: TextField(
+                                  enabled: false,
+                                  controller: (kgsControllers.isNotEmpty && i < kgsControllers.length)
+                                      ? kgsControllers[i]
+                                      : TextEditingController(),
+                                  keyboardType: TextInputType.number,
+                                  decoration: const InputDecoration(
+                                    hintText: 'nº',
+                                  ),
+                                ),
+                              ),
+                              const Expanded(
+                                  child: Text('Kg',style: TextStyle(fontSize: 12),),
+                              ),
+                            InkWell(
+                              onTap: () async {
+                                setState(() {
+                                  numberOfLines--;
+                                  repsControllers.removeAt(i);
+                                  kgsControllers.removeAt(i);
+                                });
+
+                                final prefs = await SharedPreferences.getInstance();
+                                final buttonKey = widget.buttonName;
+
+                                final savedSeriesTotais = prefs.getInt('seriesTotais') ?? 0;
+                                final updatedSeriesTotais = savedSeriesTotais - 1;
+                                await prefs.setInt('seriesTotais', updatedSeriesTotais);
+
+                                final savedRepsTotais = prefs.getInt('repsTotais') ?? 0;
+                                final savedKgsTotais = prefs.getDouble('kgsTotais') ?? 0.0;
+
+                                final removedReps = repsList[i] != '' ? int.parse(repsList[i]) : 0;
+                                final removedKgs = kgsList[i] != '' ? double.parse(kgsList[i]) : 0.0;
+
+                                final updatedRepsTotais = savedRepsTotais - removedReps;
+                                final updatedKgsTotais = savedKgsTotais - removedKgs;
+
+                                await prefs.setInt('repsTotais', updatedRepsTotais);
+                                await prefs.setDouble('kgsTotais', updatedKgsTotais);
+
+                                setState(() {
+                                  repsList.removeAt(i);
+                                  kgsList.removeAt(i);
+                                });
+                              },
+                              child: const Icon(
+                                Icons.minimize_outlined,
+                                color: Colors.black,
+                              ),
                             ),
-                          ],
+                            ],
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+
+
                       ),
                     ],
                   ),
-                ),
-
-
-                    ),
-                  ],
                 ),
               ),
             Row(
@@ -302,16 +348,13 @@ Future<void> showModal(BuildContext context, int index) async {
                 ),
               ],
             ),
-          ElevatedButton(
-            onPressed: () {
-              clearData();
-              // Outras ações que você deseja realizar após limpar os dados
-            },
-            child: const Text('Limpar Todos os Dados'),
-          )
+
+
           ],
+
         ),
       ),
+
     );
   }
 }

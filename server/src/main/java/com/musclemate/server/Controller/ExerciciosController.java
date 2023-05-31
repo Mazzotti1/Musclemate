@@ -47,7 +47,9 @@ public class ExerciciosController{
             return ResponseEntity.notFound().build();
         }
 
+        System.out.println(exercicios);
         return ResponseEntity.ok(exercicios);
+
     }
 
 }

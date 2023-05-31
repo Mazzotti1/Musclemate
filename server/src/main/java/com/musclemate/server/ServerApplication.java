@@ -8,6 +8,7 @@ import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfi
 public class ServerApplication {
 
 	public static void main(String[] args) {
+		System.setProperty("file.encoding", "UTF-8");
 		SpringApplication.run(ServerApplication.class, args);
 	}
 

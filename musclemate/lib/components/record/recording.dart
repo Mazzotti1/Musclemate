@@ -10,9 +10,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:intl/intl.dart';
-import 'dart:math';
+
 class recording extends StatefulWidget {
-  const recording({Key? key}) : super(key: key);
+   final String buttonName;
+ const recording({Key? key, required this.buttonName,}) : super(key: key);
 
  @override
   _recordingState createState()=> _recordingState();
@@ -35,6 +36,7 @@ class _recordingState extends State<recording> {
     startTimer();
     _loadTextFromLocalStorage();
     generateButtons();
+
   }
 
     void startTimer() {
@@ -206,8 +208,32 @@ try {
 }
 } catch (e) {
   print('Erro: $e');
-}
   }
+}
+
+Future<void> clearData() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  final keys = prefs.getKeys();
+
+  final seriesKeys = keys.where((key) => key.startsWith("series_")).toList();
+  final repsKeys = keys.where((key) => key.startsWith("reps_")).toList();
+  final kgsKeys = keys.where((key) => key.startsWith("kgs_")).toList();
+
+  for (final key in seriesKeys) {
+    await prefs.remove(key);
+  }
+  for (final key in repsKeys) {
+    await prefs.remove(key);
+  }
+  for (final key in kgsKeys) {
+    await prefs.remove(key);
+  }
+  await prefs.remove('seriesTotais');
+  await prefs.remove('repsTotais');
+  await prefs.remove('kgsTotais');
+
+}
 
 
 @override
@@ -315,7 +341,7 @@ Widget build(BuildContext context) {
             ),
             child: IconButton(
               onPressed: () {
-                // Lógica para lidar com o botão "Concluir"
+                clearData();
                 saveTraining();
               },
             icon: const Icon(

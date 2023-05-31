@@ -25,7 +25,7 @@ class _recordState extends State<record>{
     {"title": "Triceps", "isSelected": false},
     {"title": "Costas", "isSelected": false},
     {"title": "Ombros", "isSelected": false},
-    {"title": "Inferiores", "isSelected": false},
+    {"title": "Pernas", "isSelected": false},
     {"title": "Cárdio", "isSelected": false},
   ];
 

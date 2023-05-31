@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musclemate/components/record/recording.dart';
 import 'package:musclemate/screen/home_config/configuration_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 
 
@@ -15,7 +16,29 @@ class RecordingPage extends StatefulWidget {
 
 class _RecordingPageState extends State<RecordingPage> {
 
+Future<void> clearData() async {
+  final prefs = await SharedPreferences.getInstance();
 
+  final keys = prefs.getKeys();
+
+  final seriesKeys = keys.where((key) => key.startsWith("series_")).toList();
+  final repsKeys = keys.where((key) => key.startsWith("reps_")).toList();
+  final kgsKeys = keys.where((key) => key.startsWith("kgs_")).toList();
+
+  for (final key in seriesKeys) {
+    await prefs.remove(key);
+  }
+  for (final key in repsKeys) {
+    await prefs.remove(key);
+  }
+  for (final key in kgsKeys) {
+    await prefs.remove(key);
+  }
+  await prefs.remove('seriesTotais');
+  await prefs.remove('repsTotais');
+  await prefs.remove('kgsTotais');
+
+}
 
   void _navigateToConfigurations() {
     Navigator.push(
@@ -32,6 +55,7 @@ class _RecordingPageState extends State<RecordingPage> {
         backgroundColor: const Color.fromRGBO(32, 48, 105, 1),
         title: IconButton(
           onPressed: () {
+             clearData();
             Navigator.pop(context);
 
           },
@@ -44,9 +68,9 @@ class _RecordingPageState extends State<RecordingPage> {
           ),
         ],
       ),
-      body:  Stack(
+      body:  const Stack(
         children: [
-          const recording(),
+          recording(buttonName: '',),
 
         ],
       ),
