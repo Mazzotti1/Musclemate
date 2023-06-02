@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 
-import 'package:musclemate/screen/Login&Register/welcome_page.dart';
+import 'package:musclemate/pages/Login&Register/welcome_page.dart';
 
 
 class AppWidget extends StatelessWidget {
