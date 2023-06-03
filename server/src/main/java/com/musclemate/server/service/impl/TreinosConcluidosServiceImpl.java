@@ -16,6 +16,7 @@ public class TreinosConcluidosServiceImpl {
 
     @Autowired
     private UserServiceImpl userService;
+
     public List<TreinosConcluidos> getAllTreinos(String usuario_id) {
         return repository.findAllTreinosById(usuario_id);
     }

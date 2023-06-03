@@ -25,7 +25,7 @@ class _barraPesquisaState extends State<barraPesquisa> {
   String? selectedButtonName;
   Map<String, bool> buttonVisibility = {};
 
-
+  List<String> buttonNames = [];
 
   @override
   void initState() {
@@ -36,6 +36,7 @@ class _barraPesquisaState extends State<barraPesquisa> {
     _clearSearch();
   }
 });
+_saveButtonNames();
 selectedButtons.forEach((buttonName) {
   buttonVisibility[buttonName] = false;
 });
@@ -43,6 +44,7 @@ selectedButtons.forEach((buttonName) {
 
   @override
   void dispose() {
+    _saveButtonNames();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
@@ -51,6 +53,7 @@ selectedButtons.forEach((buttonName) {
   void _performSearch(String searchText) {
     setState(() {
       // Filtrar os conteúdos com base no texto de pesquisa
+
       searchResults = contents
           .where((content) =>
               content.toLowerCase().contains(searchText.toLowerCase()))
@@ -117,7 +120,20 @@ selectedButtons.forEach((buttonName) {
   }
 }
 
+Future<void> _saveButtonNames() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setStringList('buttonNames', buttonNames);
+}
 
+// Future<void> _retrieveButtonNames() async {
+//   SharedPreferences prefs = await SharedPreferences.getInstance();
+//   List<String>? savedButtonNames = prefs.getStringList('buttonNames');
+//   if (savedButtonNames != null) {
+//     setState(() {
+//       buttonNames = savedButtonNames;
+//     });
+//   }
+// }
 
  @override
   Widget build(BuildContext context) {
@@ -170,18 +186,21 @@ selectedButtons.forEach((buttonName) {
                   children: [
                     ...searchResults.map((selectedButtonName) {
                       return TextButton(
-                      onPressed: () {
-                        if (!selectedButtons.contains(selectedButtonName)) {
-                          setState(() {
-                            selectedButtons.add(selectedButtonName);
-                            _closeOtherButtons(selectedButtonName);
-                          });
+                                        onPressed: () {
+                      if (!selectedButtons.contains(selectedButtonName)) {
+                        setState(() {
+                          selectedButtons.add(selectedButtonName);
+                          _closeOtherButtons(selectedButtonName);
+                          buttonNames.add(selectedButtonName);
+                        });
 
-                          // Chame a função de callback do componente pai
-                          widget.onButtonSelected(selectedButtonName);
-                        }
-                        _searchFocusNode.unfocus();
-                      },
+                        // Chame a função de callback do componente pai
+                        widget.onButtonSelected(selectedButtonName);
+
+                        _saveButtonNames(); // Salve a lista de nomes dos botões
+                      }
+                      _searchFocusNode.unfocus();
+                    },
                       child: Text(
                         selectedButtonName,
                         style: const TextStyle(color: Colors.black, fontSize: 15),

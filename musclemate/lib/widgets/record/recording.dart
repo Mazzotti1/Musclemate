@@ -287,6 +287,7 @@ Widget build(BuildContext context) {
                     ),
                     const SizedBox(height: 20,),
                     barraPesquisa(onButtonSelected: (String ) {  },),
+
                   ],
                 ),
               ),

@@ -1,8 +1,14 @@
 
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:musclemate/widgets/record/searchBar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'package:flutter/cupertino.dart';
 
 
 class DefaultExercises extends StatefulWidget {
@@ -12,6 +18,8 @@ class DefaultExercises extends StatefulWidget {
   _DefaultExercisesState createState()=> _DefaultExercisesState();
 }
 class _DefaultExercisesState extends State<DefaultExercises>{
+
+TextEditingController _nameController = TextEditingController();
 
 List<String> exerciseList = [];
 int selectedIndex = -1;
@@ -91,57 +99,154 @@ void _handleButtonSelected(String buttonName) {
   });
 }
 
-@override
-Widget build(BuildContext context) {
-barraPesquisa(
-  onButtonSelected: _handleButtonSelected,
+Future<void> saveDefaultTraining() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    String trainingType = prefs.getString('SelectedExercise')!;
+    List<String> exercises = prefs.getStringList('buttonNames')!;
+    String nomeTreino = _nameController.text;
+     String? apiUrl = dotenv.env['API_URL'];
+
+    final userTokenData = JwtDecoder.decode(token);
+    String userId = (userTokenData['sub']);
+
+    String url = '$apiUrl/treinosPadroes';
+
+  Map<String, dynamic> userData = {
+  "nome": nomeTreino,
+  "exercicios": exercises,
+  "grupos": trainingType,
+  "user": {
+    "id": userId
+  }
+};
+
+    String jsonData = jsonEncode(userData);
+try {
+  final response = await http.post(
+    Uri.parse(url),
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+    body: jsonData,
   );
 
+ if (response.statusCode == 200) {
+
+  print(response.body);
+
+} else {
+  if (response.statusCode == 400) {
+    final error = jsonDecode(response.body)['error'];
+  print('Erro: $error');
+  } else {
+    setState(() {
+      print('Erro: ${response.statusCode}');
+    });
+  }
+}
+} catch (e) {
+  print('Erro: $e');
+  }
+}
+
+
+@override
+Widget build(BuildContext context) {
   return GestureDetector(
     onTap: () {
       FocusScope.of(context).unfocus();
     },
-
-  child:  Scaffold(
-    body: Stack(
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(
-              height: 20.0,
-            ),
-            const Center(
-              child: Column(
+    child: Scaffold(
+      body: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 20.0,
+              ),
+              const Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'Monte e salve seus treinos para agilizar o processo!',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 25, fontFamily: 'BourbonGrotesque'),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 20,),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: generateButtons(),
+                ),
+              ),
+              const SizedBox(height: 20,),
+              barraPesquisa(onButtonSelected: (String) {}),
+            ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 50,
+            child: Container(
+              width: double.infinity,
+              height: 92,
+              color: const Color.fromRGBO(228, 232, 248, 1),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    'Monte e salve seus treinos para agilizar o processo!',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 25, fontFamily: 'BourbonGrotesque'),
+                  Container(
+                    width: 70,
+                    height: 70,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color.fromRGBO(215, 242, 132, 1),
+                    ),
+                    child: TextButton(
+                     onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return CupertinoAlertDialog(
+                                title: const Text('De um nome para esse treino'),
+                                content: CupertinoTextField(
+                                  controller: _nameController,
+                                ),
+                                actions: [
+                                  CupertinoDialogAction(
+                                    child: const Text('Cancelar'),
+                                    onPressed: () {
+                                      Navigator.of(context).pop(); // Fechar o diálogo
+                                    },
+                                  ),
+                                  CupertinoDialogAction(
+                                    child: const Text('Salvar'),
+                                    onPressed: () {
+                                      saveDefaultTraining();
+                                      Navigator.of(context).pop(); // Fechar o diálogo
+                                    },
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+                        }, child: const Text('Salvar', style: TextStyle(color: Colors.black),),
+
+                    ),
                   ),
                 ],
               ),
             ),
-            SizedBox(height: 20,),
-            SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: generateButtons(),
-                      ),
-                    ),
-                    const SizedBox(height: 20,),
-                    barraPesquisa(onButtonSelected: (String ) {  },),
-
-                  ],
-                ),
-          ]
-            ),
-
-        ),
-
+          ),
+        ],
+      ),
+    ),
   );
-
-
 }
 }
