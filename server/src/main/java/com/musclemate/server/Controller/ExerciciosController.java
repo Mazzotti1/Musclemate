@@ -32,7 +32,7 @@ public class ExerciciosController{
     @PostMapping
     public ResponseEntity<List<String>> chooseGroup(@RequestBody List<String> groupNames) {
         if (groupNames == null || groupNames.isEmpty()) {
-            throw new RegistroIncorretoException("Escolha os grupos musculares do treino!");
+            throw new RegistroIncorretoException("Escolha grupos musculares validos para o treino!");
         }
 
         return ResponseEntity.ok(groupNames);

@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:musclemate/pages/RecordPages/record_page.dart';
 import 'package:musclemate/widgets/record/searchBar.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -30,6 +31,13 @@ int selectedIndex = -1;
     _loadTextFromLocalStorage();
     generateButtons();
 
+  }
+
+  void _openRecordPage() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const RecordPage()),
+    );
   }
 
 Future<void> _saveSelectedExercise(String exercise) async {
@@ -113,7 +121,7 @@ Future<void> saveDefaultTraining() async {
     String url = '$apiUrl/treinosPadroes';
 
   Map<String, dynamic> userData = {
-  "nome": nomeTreino,
+  "nomeTreino": nomeTreino,
   "exercicios": exercises,
   "grupos": trainingType,
   "user": {
@@ -133,7 +141,7 @@ try {
   );
 
  if (response.statusCode == 200) {
-
+  _openRecordPage();
   print(response.body);
 
 } else {

@@ -74,11 +74,13 @@ Future<void> _loadTextFromLocalStorage() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? savedText = prefs.getString('SelectedExercise');
   if (savedText != null) {
+    String cleanedText = savedText.replaceAll('\\', ''); // Remove as barras invertidas
     setState(() {
-      exerciseList = savedText.split(","); // Converte a string em lista de strings
+      exerciseList = cleanedText.split(","); // Converte a string limpa em uma lista de strings
     });
   }
 }
+
 //Salvar a escolha do grupo muscular
 Future<void> _saveSelectedExercise(String exercise) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -239,6 +241,46 @@ Future<void> clearData() async {
 
 }
 
+
+Future<void> findDefault() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userTokenData = JwtDecoder.decode(token);
+  String userId = (userTokenData['sub']);
+  String url = '$apiUrl/treinosPadroes/$userId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+
+
+      setState(() {});
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
 
 @override
 Widget build(BuildContext context) {

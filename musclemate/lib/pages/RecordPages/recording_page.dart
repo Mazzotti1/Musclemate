@@ -43,6 +43,7 @@ Future<void> clearData() async {
   await prefs.remove('seriesTotais');
   await prefs.remove('repsTotais');
   await prefs.remove('kgsTotais');
+  await prefs.remove('SelectedTitle');
 
 }
 

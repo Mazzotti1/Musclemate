@@ -23,7 +23,7 @@ public class TreinosPadroesServiceImpl {
     public void criarTreinoPadrao(TreinosPadroes treinoDTO){
         TreinosPadroes treino = new TreinosPadroes();
 
-        treino.setNome(treinoDTO.getNome());
+        treino.setNomeTreino(treinoDTO.getNomeTreino());
         treino.setExercicios(treinoDTO.getExercicios());
         treino.setGrupos(treinoDTO.getGrupos());
         treino.setUser(treinoDTO.getUser());

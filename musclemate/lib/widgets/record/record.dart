@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:musclemate/pages/RecordPages/defaultExercises_page.dart';
 
 import 'package:musclemate/pages/RecordPages/recording_page.dart';
@@ -20,17 +21,26 @@ class record extends StatefulWidget {
 }
 class _recordState extends State<record>{
 
+  @override
+  void initState() {
+    super.initState();
+    findDefault();
+  }
+
+
  final List<Map<String, dynamic>> items = [
-    {"title": "Peito", "isSelected": false},
-    {"title": "Biceps", "isSelected": false},
-    {"title": "Triceps", "isSelected": false},
-    {"title": "Costas", "isSelected": false},
-    {"title": "Ombros", "isSelected": false},
-    {"title": "Pernas", "isSelected": false},
-    {"title": "Cárdio", "isSelected": false},
+    {"title": "Peito", "isSelected": false, "isDefault": true},
+    {"title": "Biceps", "isSelected": false, "isDefault": true},
+    {"title": "Triceps", "isSelected": false, "isDefault": true},
+    {"title": "Costas", "isSelected": false, "isDefault": true},
+    {"title": "Ombros", "isSelected": false, "isDefault": true},
+    {"title": "Pernas", "isSelected": false, "isDefault": true},
+    {"title": "Cárdio", "isSelected": false, "isDefault": true},
   ];
 
 late List<bool> checkedList = List.filled(items.length, false);
+
+
 
   void _openRecordingPage() {
     Navigator.push(
@@ -61,10 +71,8 @@ Future<void> startExercise() async {
 
   List jsonData = items
       .where((item) => item['isSelected'] == true)
-      .map((item) => item['title'] ?? '')
+      .map((item) => item.containsKey('isDefault') ? item['title'] : item['grupos'])
       .toList();
-
-
 
   try {
     final response = await http.post(
@@ -79,6 +87,8 @@ Future<void> startExercise() async {
     if (response.statusCode == 200) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('SelectedExercise', response.body);
+
+
       _openRecordingPage();
 
     } else {
@@ -108,11 +118,9 @@ Future<void> createDefaultExercise() async {
   String url = '$apiUrl/exercicios';
 
   List jsonData = items
-      .where((item) => item['isSelected'] == true)
+      .where((item) => item['isSelected'] == true && item.containsKey('isDefault'))
       .map((item) => item['title'] ?? '')
       .toList();
-
-
 
   try {
     final response = await http.post(
@@ -127,6 +135,7 @@ Future<void> createDefaultExercise() async {
     if (response.statusCode == 200) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('SelectedExercise', response.body);
+
       _openDefaultExercises();
 
     } else {
@@ -145,6 +154,63 @@ Future<void> createDefaultExercise() async {
     });
   }
 }
+
+
+
+
+Future<void> findDefault() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userTokenData = JwtDecoder.decode(token);
+  String userId = (userTokenData['sub']);
+  String url = '$apiUrl/treinosPadroes/$userId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+
+      for (var item in responseData) {
+        final nomeTreino = item['nomeTreino'];
+        final grupos = item['grupos'];
+        final exercicios = item['exercicios'];
+
+        items.add({
+          "title": nomeTreino,
+          "isSelected": false,
+          "grupos": grupos,
+          "exercicios": exercicios,
+        });
+      }
+      setState(() {});
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
+
+
 
 @override
 Widget build(BuildContext context) {

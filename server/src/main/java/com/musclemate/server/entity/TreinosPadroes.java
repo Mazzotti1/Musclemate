@@ -23,7 +23,7 @@ public class TreinosPadroes {
 
     @NotNull
     @Column
-    private String nome;
+    private String nomeTreino;
 
 
     private List<String> exercicios;
