@@ -1,6 +1,7 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -32,7 +33,11 @@ class _recordingState extends State<recording> {
 
   Duration pausedDuration = Duration.zero;
 
-   List<String> selectedButtons = [];
+  List<String> selectedButtons = [];
+
+  bool _errorDialog = false;
+  String _Message = '';
+  Color _messageColor = Colors.red;
 
   @override
   void initState() {
@@ -190,8 +195,8 @@ Future<void> saveTraining() async {
 	"user":{"id":userId}
   };
 
-    String jsonData = jsonEncode(userData);
 try {
+   String jsonData = jsonEncode(userData);
   final response = await http.post(
     Uri.parse(url),
     headers: {
@@ -207,11 +212,17 @@ try {
 
 } else {
   if (response.statusCode == 400) {
-    final error = jsonDecode(response.body)['error'];
-  print('Erro: $error');
+      final error = jsonDecode(response.body)['error'];
+      setState(() {
+        _errorDialog = true;
+      _Message = '$error';
+      _messageColor = Colors.red;
+      });
   } else {
-    setState(() {
-      print('Erro: ${response.statusCode}');
+     setState(() {
+      _errorDialog = true;
+       _Message = 'Erro2: $e';
+         _messageColor = Colors.red;
     });
   }
 }
@@ -241,7 +252,7 @@ Future<void> clearData() async {
   await prefs.remove('seriesTotais');
   await prefs.remove('repsTotais');
   await prefs.remove('kgsTotais');
-
+  await prefs.remove('SelectedDefaultExercise');
 }
 
 
@@ -249,6 +260,30 @@ Future<void> clearData() async {
 
 @override
 Widget build(BuildContext context) {
+  if (_errorDialog) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Center(child: const Text('Ops')),
+          content:  Text(_Message,textAlign: TextAlign.center, style: TextStyle(color: _messageColor, fontSize: 17 ),),
+          actions: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _errorDialog = false;
+                });
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  });
+}
   barraPesquisa(
   onButtonSelected: _handleButtonSelected,
   );
@@ -359,6 +394,7 @@ Widget build(BuildContext context) {
               onPressed: () {
                 clearData();
                 saveTraining();
+                Navigator.pop(context);
               },
             icon: const Icon(
                 Icons.check,
