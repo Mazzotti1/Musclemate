@@ -14,4 +14,7 @@ public interface TreinosPadroesRepository extends JpaRepository<TreinosPadroes, 
     List<TreinosPadroes> findAllTreinosById(String usuario_id);
 
     List<TreinosPadroes> findAllByUser(User user);
+
+    List<TreinosPadroes> findExerciciosByUserAndNomeTreino(User user, String nomeTreino);
+
 }

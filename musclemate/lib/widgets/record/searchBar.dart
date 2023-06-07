@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+
 import 'package:musclemate/widgets/record/contentButton.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -27,6 +29,8 @@ class _barraPesquisaState extends State<barraPesquisa> {
 
   List<String> buttonNames = [];
 
+
+
   @override
   void initState() {
     super.initState();
@@ -35,11 +39,14 @@ class _barraPesquisaState extends State<barraPesquisa> {
   if (!_searchFocusNode.hasFocus) {
     _clearSearch();
   }
+
 });
 _saveButtonNames();
 selectedButtons.forEach((buttonName) {
   buttonVisibility[buttonName] = false;
 });
+
+  findDefaultExercises();
   }
 
   @override
@@ -47,6 +54,7 @@ selectedButtons.forEach((buttonName) {
     _saveButtonNames();
     _searchController.dispose();
     _searchFocusNode.dispose();
+
     super.dispose();
   }
 
@@ -125,15 +133,53 @@ Future<void> _saveButtonNames() async {
   await prefs.setStringList('buttonNames', buttonNames);
 }
 
-// Future<void> _retrieveButtonNames() async {
-//   SharedPreferences prefs = await SharedPreferences.getInstance();
-//   List<String>? savedButtonNames = prefs.getStringList('buttonNames');
-//   if (savedButtonNames != null) {
-//     setState(() {
-//       buttonNames = savedButtonNames;
-//     });
-//   }
-// }
+Future<void> findDefaultExercises() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+   String? nameTraining = await prefs.getString('SelectedDefaultExercise');
+  String? apiUrl = dotenv.env['API_URL'];
+  final userTokenData = JwtDecoder.decode(token);
+  String userId = (userTokenData['sub']);
+  String url = '$apiUrl/treinosPadroes/$userId/$nameTraining';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+
+        for (var item in responseData) {
+        final exercicios = item['exercicios'];
+        setState(() {
+          selectedButtons = List<String>.from(exercicios);
+        });
+      }
+
+
+      setState(() {});
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
 
  @override
   Widget build(BuildContext context) {

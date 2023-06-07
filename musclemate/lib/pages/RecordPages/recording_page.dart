@@ -43,7 +43,7 @@ Future<void> clearData() async {
   await prefs.remove('seriesTotais');
   await prefs.remove('repsTotais');
   await prefs.remove('kgsTotais');
-  await prefs.remove('SelectedTitle');
+  await prefs.remove('SelectedDefaultExercise');
 
 }
 
@@ -79,9 +79,9 @@ Future<void> clearData() async {
           ),
         ],
       ),
-      body:  const Stack(
+      body:   const Stack(
         children: [
-          recording(buttonName: '',),
+          recording(buttonName: '' ),
 
         ],
       ),

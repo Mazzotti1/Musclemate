@@ -40,7 +40,7 @@ class _recordState extends State<record>{
 
 late List<bool> checkedList = List.filled(items.length, false);
 
-
+String? selectedNomeTreino;
 
   void _openRecordingPage() {
     Navigator.push(
@@ -69,10 +69,19 @@ Future<void> startExercise() async {
 
   String url = '$apiUrl/exercicios';
 
-  List jsonData = items
-      .where((item) => item['isSelected'] == true)
-      .map((item) => item.containsKey('isDefault') ? item['title'] : item['grupos'])
-      .toList();
+List jsonData = items
+    .where((item) => item['isSelected'] == true)
+    .map((item) {
+      if (item.containsKey('isDefault')) {
+        return item['title'];
+      } else {
+        SharedPreferences.getInstance().then((prefs) {
+          prefs.setString('SelectedDefaultExercise', item['title']);
+        });
+        return item['grupos'];
+      }
+    })
+    .toList();
 
   try {
     final response = await http.post(
@@ -87,6 +96,7 @@ Future<void> startExercise() async {
     if (response.statusCode == 200) {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('SelectedExercise', response.body);
+
 
 
       _openRecordingPage();
@@ -192,6 +202,7 @@ Future<void> findDefault() async {
           "grupos": grupos,
           "exercicios": exercicios,
         });
+
       }
       setState(() {});
     } else {

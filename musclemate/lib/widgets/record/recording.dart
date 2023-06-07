@@ -32,6 +32,7 @@ class _recordingState extends State<recording> {
 
   Duration pausedDuration = Duration.zero;
 
+   List<String> selectedButtons = [];
 
   @override
   void initState() {
@@ -40,7 +41,9 @@ class _recordingState extends State<recording> {
     _loadTextFromLocalStorage();
     generateButtons();
 
+
   }
+
 
     void startTimer() {
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
@@ -242,45 +245,7 @@ Future<void> clearData() async {
 }
 
 
-Future<void> findDefault() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  String token = prefs.getString('token')!;
 
-  await dotenv.load(fileName: ".env");
-
-  String? apiUrl = dotenv.env['API_URL'];
-  final userTokenData = JwtDecoder.decode(token);
-  String userId = (userTokenData['sub']);
-  String url = '$apiUrl/treinosPadroes/$userId';
-
-  try {
-    final response = await http.get(
-      Uri.parse(url),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-
-
-      setState(() {});
-    } else {
-      if (response.statusCode == 400) {
-        final error = jsonDecode(response.body)['error'];
-        print('Erro: $error');
-      } else {
-        setState(() {
-          print('Erro: ${response.statusCode}');
-        });
-      }
-    }
-  } catch (e) {
-    print('Erro: $e');
-  }
-}
 
 @override
 Widget build(BuildContext context) {
