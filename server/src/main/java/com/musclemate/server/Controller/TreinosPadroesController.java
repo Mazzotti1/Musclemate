@@ -26,9 +26,11 @@ public class TreinosPadroesController {
     private TreinosPadroesRepository repository;
     @GetMapping("{userId}")
     public List<TreinosPadroes> getAllTreinos(@PathVariable("userId") User user) {
-        return repository.findAllByUser(user);
+        List<TreinosPadroes> treinos = repository.findAllByUser(user);
+        treinos.forEach(treino -> treino.setUser(null));
+        return treinos;
     }
-
+    
     @PostMapping
     public ResponseEntity<Object> criarTreinoPadrao(@RequestBody @Valid TreinosPadroes treinoDTO, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {

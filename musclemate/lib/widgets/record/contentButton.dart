@@ -183,17 +183,16 @@ Future<void> showModal(BuildContext context, int index) async {
         actions: [
           ElevatedButton(
             onPressed: () async {
-            setState(() {
-              repsList[index] = repsController.text;
-              kgsList[index] = kgsController.text;
-              repsTotais = int.parse(repsController.text);
-              kgsTotais = double.parse(kgsController.text);
+              setState(() {
+                repsList[index] = repsController.text;
+                kgsList[index] = kgsController.text;
+                repsTotais = int.tryParse(repsController.text) ?? 0;
+                kgsTotais = double.tryParse(kgsController.text) ?? 0.0;
+              });
 
-            });
-            await saveTotal();
-            await saveData();
-            await loadData();
-
+              await saveTotal();
+              await saveData();
+              await loadData();
 
             Navigator.of(context).pop();
           },

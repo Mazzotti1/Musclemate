@@ -1,10 +1,85 @@
+
+
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+
 import 'package:musclemate/widgets/charts/exercise_time_chart.dart';
 import 'package:musclemate/widgets/charts/exercise_volume_chart.dart';
 import 'package:musclemate/widgets/charts/weight_progress_chart.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class PerfilProgress extends StatelessWidget {
-  const PerfilProgress({Key? key}) : super(key: key);
+import 'package:http/http.dart' as http;
+
+
+class PerfilProgress extends StatefulWidget {
+  const PerfilProgress({super.key});
+
+  @override
+  State<PerfilProgress> createState() => _PerfilProgressState();
+}
+
+class _PerfilProgressState extends State<PerfilProgress> {
+
+
+
+  List<double> pesos = [];
+  List<int> meses = [];
+
+@override
+  void initState() {
+    super.initState();
+    findTraining();
+
+  }
+
+  Future<void> findTraining() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userTokenData = JwtDecoder.decode(token);
+  String userId = (userTokenData['sub']);
+  String url = '$apiUrl/treinos/$userId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+for (var data in responseData) {
+  int mediaDePesoUtilizado = data['mediaDePesoUtilizado'];
+  String dataDoTreino = data['dataDoTreino'];
+
+  pesos.add(mediaDePesoUtilizado.toDouble());
+  meses.add(int.parse(dataDoTreino.split('/')[1]));
+}
+
+
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -43,9 +118,12 @@ class PerfilProgress extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              const WeightProgressChart(),
-              const SizedBox(height: 20),
+                const SizedBox(height: 12),
+                WeightProgressChart(
+                  pesos: pesos,
+                  meses: meses,
+                ),
+            const SizedBox(height: 20),
               Column(
                 children: [
                   Row(

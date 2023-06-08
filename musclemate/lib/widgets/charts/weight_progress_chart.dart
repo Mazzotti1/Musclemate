@@ -2,8 +2,16 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+
 class WeightProgressChart extends StatefulWidget {
-  const WeightProgressChart({super.key});
+   final List<double> pesos;
+   final List<int> meses;
+
+  const WeightProgressChart({
+    Key? key,
+    required this.pesos,
+    required this.meses,
+  }) : super(key: key);
 
   @override
   State<WeightProgressChart> createState() => _WeightProgressChartState();
@@ -12,7 +20,11 @@ class WeightProgressChart extends StatefulWidget {
 class _WeightProgressChartState extends State<WeightProgressChart> {
 
 
+
   bool showAvg = false;
+
+
+
 
  @override
   Widget build(BuildContext context) {
@@ -27,9 +39,10 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
               top: 0,
               bottom: 0,
             ),
-            child: LineChart(
-              showAvg ? avgData() : mainData(),
-            ),
+child: LineChart(
+  showAvg ? avgData() : mainData(widget.pesos, widget.meses), // Modificado aqui
+),
+
           ),
         ),
         SizedBox(
@@ -55,80 +68,56 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
   }
 
   Widget bottomTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 10,
-    );
-    Widget text;
-    switch (value.toInt()) {
-      case 1:
-        text = const Text('Jan', style: style);
-        break;
-      case 2:
-        text = const Text('Fev', style: style);
-        break;
-      case 3:
-        text = const Text('Mar', style: style);
-        break;
-      case 4:
-        text = const Text('Abr', style: style);
-        break;
-      case 5:
-        text = const Text('Mai', style: style);
-        break;
-      case 6:
-        text = const Text('Jun', style: style);
-        break;
-      case 7:
-        text = const Text('Jul', style: style);
-        break;
-      case 8:
-        text = const Text('Ago', style: style);
-        break;
-      case 9:
-        text = const Text('Set', style: style);
-        break;
-      case 10:
-        text = const Text('Out', style: style);
-        break;
-      case 11:
-        text = const Text('Nov', style: style);
-        break;
-      case 12:
-        text = const Text('Dez', style: style);
-        break;
-      default:
-        text = const Text('', style: style);
-        break;
-    }
-
-    return SideTitleWidget(
-      axisSide: meta.axisSide,
-      child: text,
-    );
+  const style = TextStyle(
+    fontWeight: FontWeight.bold,
+    fontSize: 10,
+  );
+  Widget text;
+  int index = value.toInt() - 1;
+  if (index >= 0 && index < widget.meses.length) {
+    String month = _getMonthAbbreviation(widget.meses[index]);
+    text = Text(month, style: style);
+  } else {
+    text = const Text('', style: style);
   }
 
-  Widget leftTitleWidgets(double value, TitleMeta meta) {
-    const style = TextStyle(
-      fontWeight: FontWeight.bold,
-      fontSize: 11,
-    );
-    String text;
-    switch (value.toInt()) {
-      case 0:
-        text = '0Kg';
-        break;
-      case 6:
-        text = '10Kg';
-        break;
-      default:
-        return Container();
-    }
+  return SideTitleWidget(
+    axisSide: meta.axisSide,
+    child: text,
+  );
+}
 
-    return Text(text, style: style, textAlign: TextAlign.left);
+Widget leftTitleWidgets(double value, TitleMeta meta) {
+  const style = TextStyle(
+    fontWeight: FontWeight.bold,
+    fontSize: 11,
+  );
+  String text;
+  int index = value.toInt();
+  if (index >= 0 && index < widget.pesos.length) {
+    text = '${widget.pesos[index]}';
+  } else {
+    return Container();
   }
 
-  LineChartData mainData() {
+  return Text(text, style: style, textAlign: TextAlign.left);
+}
+
+String _getMonthAbbreviation(int monthNumber) {
+  const List<String> months = [
+    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+  ];
+
+  if (monthNumber >= 1 && monthNumber <= 12) {
+    return months[monthNumber - 1];
+  } else {
+    return '';
+  }
+}
+
+
+  LineChartData mainData(List<double> pesos, List<int> meses) {
     return LineChartData(
       gridData: FlGridData(
         show: true,
@@ -290,3 +279,4 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
     );
   }
 }
+

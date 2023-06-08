@@ -23,8 +23,11 @@ public class TreinosConcluidosController {
     private TreinosConcluidosRepository repository;
     @GetMapping("{userId}")
     public List<TreinosConcluidos> getAllTreinos(@PathVariable("userId") User user) {
-        return repository.findAllByUser(user);
+        List<TreinosConcluidos> treinos = repository.findAllByUser(user);
+        treinos.forEach(treino -> treino.setUser(null));
+        return treinos;
     }
+
     @PostMapping
     public ResponseEntity<Object> criarTreinoConcluido(@RequestBody @Valid TreinosConcluidos treinoDTO, BindingResult bindingResult) {
         if(bindingResult.hasErrors()) {
