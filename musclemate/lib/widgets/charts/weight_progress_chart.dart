@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 
 class WeightProgressChart extends StatefulWidget {
    final List<double> pesos;
-   final List<int> meses;
+   final List<String> dataTreino;
 
   const WeightProgressChart({
     Key? key,
     required this.pesos,
-    required this.meses,
+    required this.dataTreino
   }) : super(key: key);
 
   @override
@@ -19,15 +19,18 @@ class WeightProgressChart extends StatefulWidget {
 
 class _WeightProgressChartState extends State<WeightProgressChart> {
 
-
-
   bool showAvg = false;
-
-
-
 
  @override
   Widget build(BuildContext context) {
+     if (widget.pesos.isEmpty || widget.dataTreino.isEmpty) {
+    return const Center(
+      child: Text(
+        'Ainda não há dados suficientes.',
+        style: TextStyle(fontSize: 16),
+      ),
+    );
+  }
     return Stack(
       children: <Widget>[
         AspectRatio(
@@ -39,10 +42,9 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
               top: 0,
               bottom: 0,
             ),
-child: LineChart(
-  showAvg ? avgData() : mainData(widget.pesos, widget.meses), // Modificado aqui
-),
-
+            child: LineChart(
+               mainData(),
+            ),
           ),
         ),
         SizedBox(
@@ -67,69 +69,38 @@ child: LineChart(
     );
   }
 
-  Widget bottomTitleWidgets(double value, TitleMeta meta) {
-  const style = TextStyle(
-    fontWeight: FontWeight.bold,
-    fontSize: 10,
-  );
-  Widget text;
-  int index = value.toInt() - 1;
-  if (index >= 0 && index < widget.meses.length) {
-    String month = _getMonthAbbreviation(widget.meses[index]);
-    text = Text(month, style: style);
-  } else {
-    text = const Text('', style: style);
+Widget bottomTitleWidgets(double value, TitleMeta meta) {
+  final int index = value.toInt();
+  if (index >= 0 && index < widget.dataTreino.length) {
+    final String date = widget.dataTreino[index];
+    final List<String> dateParts = date.split('/');
+    final String formattedDate = '${dateParts[0]}/${dateParts[1]}';
+    return Text(formattedDate, style: TextStyle(fontWeight:FontWeight.bold, fontSize: 12));
   }
-
-  return SideTitleWidget(
-    axisSide: meta.axisSide,
-    child: text,
-  );
+  return Container();
 }
 
 Widget leftTitleWidgets(double value, TitleMeta meta) {
-  const style = TextStyle(
-    fontWeight: FontWeight.bold,
-    fontSize: 11,
-  );
-  String text;
-  int index = value.toInt();
+  final int index = value.toInt();
   if (index >= 0 && index < widget.pesos.length) {
-    text = '${widget.pesos[index]}';
-  } else {
-    return Container();
+    final double peso = widget.pesos[index];
+    final String formattedPeso = '${peso.toStringAsFixed(1)}Kg';
+    return Text(formattedPeso, style: TextStyle( fontSize: 10), textAlign: TextAlign.left);
   }
-
-  return Text(text, style: style, textAlign: TextAlign.left);
+  return Container();
 }
 
-String _getMonthAbbreviation(int monthNumber) {
-  const List<String> months = [
-    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
-  ];
-
-  if (monthNumber >= 1 && monthNumber <= 12) {
-    return months[monthNumber - 1];
-  } else {
-    return '';
-  }
-}
-
-
-  LineChartData mainData(List<double> pesos, List<int> meses) {
+  LineChartData mainData() {
+    final double maxPeso = widget.pesos.reduce((max, peso) => max > peso ? max : peso);
+    final double minPeso = widget.pesos.reduce((min, peso) => min < peso ? min : peso);
+    final double maxY = maxPeso.ceilToDouble();
+    final double minY = minPeso.floorToDouble();
     return LineChartData(
       gridData: FlGridData(
         show: true,
         drawVerticalLine: true,
-        horizontalInterval: 1,
+        drawHorizontalLine: false,
         verticalInterval: 1,
-        getDrawingHorizontalLine: (value) {
-          return  FlLine(
-            color: Colors.black38,
-            strokeWidth: 1,
-          );
-        },
         getDrawingVerticalLine: (value) {
           return  FlLine(
             color: Colors.black38,
@@ -170,21 +141,18 @@ String _getMonthAbbreviation(int monthNumber) {
         ),
       ),
       minX: 0,
-      maxX: 12,
-      minY: 0,
-      maxY: 6,
+      maxX: widget.pesos.length -1,
+      minY: minY,
+      maxY: maxY,
       lineBarsData: [
         LineChartBarData(
-          spots: const [
-            FlSpot(0, 3),
-            FlSpot(2.6, 2),
-            FlSpot(4.9, 5),
-            FlSpot(6.8, 3.1),
-            FlSpot(8, 4),
-            FlSpot(9.5, 3),
-            FlSpot(11, 4),
-            FlSpot(12, 6)
-          ],
+         spots: List.generate(widget.pesos.length, (index) {
+          final double peso = widget.pesos[index];
+          final double x = index.toDouble();
+          return FlSpot(x, peso);
+
+        }),
+
           isCurved: false,
           barWidth: 3,
           isStrokeCapRound: true,
@@ -194,89 +162,30 @@ String _getMonthAbbreviation(int monthNumber) {
           belowBarData: BarAreaData(
             show: true,
           ),
+
         ),
       ],
-    );
-  }
+    lineTouchData: LineTouchData(
+      enabled: true,
+      touchTooltipData: LineTouchTooltipData(
+        tooltipBgColor: Colors.blue,
+        getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+          return touchedBarSpots.map((barSpot) {
+            final int index = barSpot.x.toInt();
+            final double peso = barSpot.y;
+            final String date = widget.dataTreino[index];
+            final String formattedPeso = '${peso.toStringAsFixed(1)}Kg';
+            final List<String> dateParts = date.split('/');
+            final String formattedDate = '${dateParts[0]}/${dateParts[1]}';
 
-  LineChartData avgData() {
-    return LineChartData(
-      lineTouchData:  LineTouchData(enabled: false),
-      gridData: FlGridData(
-        show: true,
-        drawHorizontalLine: true,
-        verticalInterval: 1,
-        horizontalInterval: 1,
-        getDrawingVerticalLine: (value) {
-          return  FlLine(
-            color: const Color(0xff37434d),
-            strokeWidth: 1,
-          );
-        },
-        getDrawingHorizontalLine: (value) {
-          return  FlLine(
-            color: const Color(0xff37434d),
-            strokeWidth: 1,
-          );
+            return LineTooltipItem(
+              '$formattedDate\n$formattedPeso',
+              TextStyle(color: Colors.white, fontSize: 12),
+            );
+          }).toList();
         },
       ),
-      titlesData: FlTitlesData(
-        show: true,
-        bottomTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            reservedSize: 30,
-            getTitlesWidget: bottomTitleWidgets,
-            interval: 1,
-          ),
-        ),
-        leftTitles: AxisTitles(
-          sideTitles: SideTitles(
-            showTitles: true,
-            getTitlesWidget: leftTitleWidgets,
-            reservedSize: 42,
-            interval: 1,
-          ),
-        ),
-        topTitles:  AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-        rightTitles:  AxisTitles(
-          sideTitles: SideTitles(showTitles: false),
-        ),
-      ),
-      borderData: FlBorderData(
-        show: true,
-        border: Border.all(color: const Color(0xff37434d)),
-      ),
-      minX: 0,
-      maxX: 12,
-      minY: 0,
-      maxY: 6,
-      lineBarsData: [
-        LineChartBarData(
-          spots: const [
-            FlSpot(0, 3.44),
-            FlSpot(2.6, 3.44),
-            FlSpot(4.9, 3.44),
-            FlSpot(6.8, 3.44),
-            FlSpot(8, 3.44),
-            FlSpot(9.5, 3.44),
-            FlSpot(11, 3.44),
-          ],
-          isCurved: true,
-
-          barWidth: 5,
-          isStrokeCapRound: true,
-          dotData:  FlDotData(
-            show: false,
-          ),
-          belowBarData: BarAreaData(
-            show: true,
-          ),
-        ),
-      ],
-    );
-  }
+    ),
+  );
 }
-
+}

@@ -21,14 +21,14 @@ showDialog(
   context: context,
   builder: (BuildContext context) {
     return AlertDialog(
-      title: Text('Confirmar logout',textAlign: TextAlign.center,),
-      content: Text('Tem certeza de que deseja sair?'),
+      title: const Text('Confirmar logout',textAlign: TextAlign.center,),
+      content: const Text('Tem certeza de que deseja sair?'),
       actions: [
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextButton(
-              child: Text(
+              child: const Text(
                 'Cancelar',
                 style: TextStyle(color: Colors.black),
               ),
@@ -37,14 +37,14 @@ showDialog(
               },
             ),
             TextButton(
-              child: Text(
+              child: const Text(
                 'Sair',
                 style: TextStyle(color: Colors.red),
               ),
               onPressed: () {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => WelcomePage()),
+                  MaterialPageRoute(builder: (context) => const WelcomePage()),
                   (Route<dynamic> route) => false,
                 );
               },

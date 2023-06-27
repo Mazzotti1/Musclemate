@@ -20,7 +20,7 @@ class DefaultExercises extends StatefulWidget {
 }
 class _DefaultExercisesState extends State<DefaultExercises>{
 
-TextEditingController _nameController = TextEditingController();
+final TextEditingController _nameController = TextEditingController();
 
 List<String> exerciseList = [];
 int selectedIndex = -1;
@@ -186,7 +186,7 @@ Widget build(BuildContext context) {
                   ],
                 ),
               ),
-              SizedBox(height: 20,),
+              const SizedBox(height: 20,),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(

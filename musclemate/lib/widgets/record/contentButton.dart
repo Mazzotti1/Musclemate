@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/cupertino.dart';
 
 
 class ContentButton extends StatefulWidget {
@@ -39,17 +38,17 @@ void initState() {
 
   String getOrdinal(int number) {
     if (number % 100 >= 11 && number % 100 <= 13) {
-      return '$number' + 'ª';
+      return '$number' 'ª';
     }
     switch (number % 10) {
       case 1:
-        return '$number' + 'ª';
+        return '$number' 'ª';
       case 2:
-        return '$number' + 'ª';
+        return '$number' 'ª';
       case 3:
-        return '$number' + 'ª';
+        return '$number' 'ª';
       default:
-        return '$number' + 'ª';
+        return '$number' 'ª';
     }
   }
 

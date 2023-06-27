@@ -44,6 +44,7 @@ class _LoginState extends State<Login> {
   String _errorMessage = '';
 
   Future<void> loginUser() async {
+
     await dotenv.load(fileName: ".env");
 
      String? apiUrl = dotenv.env['API_URL'];
@@ -104,7 +105,7 @@ try {
           color: Colors.black,
         ),
       ),
-      Spacer(),
+      const Spacer(),
       TextButton(
         onPressed: loginUser,
         child: const Text(
@@ -171,7 +172,7 @@ try {
 
           ),
           Padding(
-              padding: EdgeInsets.only(left: 16.0),
+              padding: const EdgeInsets.only(left: 16.0),
               child: TextButton(
                 onPressed: _navigateToForgetPassword,
                 child: const Text(

@@ -110,7 +110,7 @@ Widget build(BuildContext context) {
        Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Padding(
+          const Padding(
             padding: EdgeInsets.only(top:30.0, left: 40.0),
             child: Column(
               children: [
@@ -118,21 +118,21 @@ Widget build(BuildContext context) {
               ],
             ),
           ),
-          SizedBox(width: 10),
+          const SizedBox(width: 10),
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(top:20.0),
+              padding: const EdgeInsets.only(top:20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: EdgeInsets.only(top:8.0),
+                    padding: const EdgeInsets.only(top:8.0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Text(
                           userName,
-                          style: TextStyle(fontSize: 18),
+                          style: const TextStyle(fontSize: 18),
                         ),
                       ],
                     ),
@@ -150,8 +150,8 @@ Widget build(BuildContext context) {
           children: [
             TextButton(
               onPressed: _navigateToFollowing,
-              child: Column(
-                children: const [
+              child: const Column(
+                children: [
                   Text('Seguindo', style: TextStyle(color: Color.fromRGBO(189, 172, 103, 1))),
                   SizedBox(width: 5),
                   Text('4', style: TextStyle(color: Colors.black)),
@@ -162,8 +162,8 @@ Widget build(BuildContext context) {
             const SizedBox(width: 10),
             TextButton(
               onPressed:_navigateToFollowers,
-              child: Column(
-                children: const [
+              child: const Column(
+                children: [
                   Text('Seguidores', style: TextStyle(color: Color.fromRGBO(189, 172, 103, 1))),
                   SizedBox(width: 5),
                   Text('6', style: TextStyle(color: Colors.black)),
@@ -192,19 +192,19 @@ Widget build(BuildContext context) {
         onTap: _navigateToActivitys,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(top:20.0, left: 20),
+            const Padding(
+              padding: EdgeInsets.only(top:20.0, left: 20),
               child: Row(
                 children: [
                   Column(
-                    children: const [
+                    children: [
                       Icon(Icons.insert_chart_outlined, size: 50),
                     ],
                   ),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text('Atividades'),
                       SizedBox(height: 5),
                       Text(
@@ -230,21 +230,21 @@ Widget build(BuildContext context) {
     onTap: _navigateToStatistics,
      child: Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.only(top:20.0, left: 20),
+        const Padding(
+          padding: EdgeInsets.only(top:20.0, left: 20),
           child: Row(
             children: [
               Column(
-                children: const [
+                children: [
                   Icon(Icons.show_chart_outlined, size: 50),
                 ],
               ),
 
               Padding(
-                padding: const EdgeInsets.only(left:8.0),
+                padding: EdgeInsets.only(left:8.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
+                  children: [
                     Text('Estatísticas'),
                     SizedBox(height: 5),
                     Text('...',

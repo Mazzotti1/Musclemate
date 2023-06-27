@@ -138,7 +138,7 @@ Widget build(BuildContext context) {
             },
             style: ButtonStyle(
               backgroundColor:
-                  MaterialStateProperty.all(Color.fromRGBO(230, 230, 230, 1)),
+                  MaterialStateProperty.all(const Color.fromRGBO(230, 230, 230, 1)),
             ),
             child: const Text('Concluído', style: TextStyle(color: Colors.black)),
           ),

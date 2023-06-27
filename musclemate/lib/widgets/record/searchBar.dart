@@ -21,7 +21,7 @@ class _barraPesquisaState extends State<barraPesquisa> {
   late TextEditingController _searchController;
   List<String> contents = [];
   List<String> searchResults = [];
-  FocusNode _searchFocusNode = FocusNode();
+  final FocusNode _searchFocusNode = FocusNode();
 
   List<String> selectedButtons = [];
   String? selectedButtonName;
@@ -42,9 +42,9 @@ class _barraPesquisaState extends State<barraPesquisa> {
 
 });
 _saveButtonNames();
-selectedButtons.forEach((buttonName) {
+for (var buttonName in selectedButtons) {
   buttonVisibility[buttonName] = false;
-});
+}
 
   findDefaultExercises();
   }
@@ -138,7 +138,7 @@ Future<void> findDefaultExercises() async {
   String token = prefs.getString('token')!;
 
   await dotenv.load(fileName: ".env");
-   String? nameTraining = await prefs.getString('SelectedDefaultExercise');
+   String? nameTraining = prefs.getString('SelectedDefaultExercise');
   String? apiUrl = dotenv.env['API_URL'];
   final userTokenData = JwtDecoder.decode(token);
   String userId = (userTokenData['sub']);
@@ -202,7 +202,7 @@ Future<void> findDefaultExercises() async {
                     children: [
                       const Icon(Icons.search, color: Colors.black45),
                       const SizedBox(width: 5),
-                      Container(
+                      SizedBox(
                         width: 180, // Definir a largura desejada para o TextField
                         child: TextField(
                           controller: _searchController,
@@ -257,7 +257,7 @@ Future<void> findDefaultExercises() async {
                   ],
                 ),
               ),
-              Container(
+              SizedBox(
                 height: 270,
                 child: Visibility(
                   visible: selectedButtons.isNotEmpty,

@@ -10,26 +10,26 @@ class Posts extends StatelessWidget {
   padding: const EdgeInsets.all(0.0),
   child: Column(
     children: [
-      Padding(
-        padding: const EdgeInsets.only(top:20.0, left: 20),
+      const Padding(
+        padding: EdgeInsets.only(top:20.0, left: 20),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Column(
-              children: const [
+              children: [
                 Icon(Icons.person_outline_rounded, size: 50),
               ],
             ),
-            const SizedBox(width: 20),
+            SizedBox(width: 20),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(top:8.0),
+                    padding: EdgeInsets.only(top:8.0),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
-                      children: const [
+                      children: [
                         Text(
                           'Marcos da Silva',
                           style: TextStyle(fontSize: 15),
@@ -38,9 +38,9 @@ class Posts extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top:2.5),
+                    padding: EdgeInsets.only(top:2.5),
                     child: Row(
-                      children: const [
+                      children: [
                         Text(
                           '18 de abril de 2023 ás 10:38',
                           style: TextStyle(fontSize: 12),
@@ -55,12 +55,12 @@ class Posts extends StatelessWidget {
         ),
       ),
       const SizedBox(height: 10,),
-      Padding(
-        padding: const EdgeInsets.only(left:9),
+      const Padding(
+        padding: EdgeInsets.only(left:9),
         child: Padding(
-          padding: const EdgeInsets.only(left: 20),
+          padding: EdgeInsets.only(left: 20),
           child: Row(
-            children: const [
+            children: [
               Text('Hoje eu treinei peito!',
               style: TextStyle(fontSize: 16)
               ),
@@ -75,8 +75,8 @@ class Posts extends StatelessWidget {
           padding: const EdgeInsets.only( left: 20),
           child: Row(
             children: [
-               Column(
-              children: const [
+               const Column(
+              children: [
                 Text('Duração',
                 style: TextStyle(fontSize: 13)
                 ),
@@ -93,8 +93,8 @@ class Posts extends StatelessWidget {
           color: Colors.black,
       ),
                 ),
-               Column(
-              children: const [
+               const Column(
+              children: [
                 Text('Média p/ exercício',
                 style: TextStyle(fontSize: 13)
                 ),
@@ -112,8 +112,8 @@ class Posts extends StatelessWidget {
           color: Colors.black,
       ),
                 ),
-               Column(
-              children: const [
+               const Column(
+              children: [
                 Text('Treino',
                 style: TextStyle(fontSize: 13)
                 ),
@@ -226,9 +226,9 @@ Padding(
         width: double.infinity,
         height: 60,
         color: const Color.fromRGBO(240, 240, 240, 1),
-        child: Row(
+        child: const Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: const [
+          children: [
             Icon(Icons.favorite),
              VerticalDivider(
               color: Colors.grey,

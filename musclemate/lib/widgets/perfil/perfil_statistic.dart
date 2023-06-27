@@ -14,7 +14,8 @@ class PerfilStatistic extends StatefulWidget {
 class _PerfilStatisticState extends State<PerfilStatistic>{
 
 
-Widget build(BuildContext context) {
+@override
+  Widget build(BuildContext context) {
   final List<Map<String, String>> items = [
     {
       "title": "Média de treinos mensal",

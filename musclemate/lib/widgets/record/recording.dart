@@ -51,7 +51,7 @@ class _recordingState extends State<recording> {
 
 
     void startTimer() {
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!isPaused) { // Verificar se o timer não está pausado
         setState(() {
           seconds++;
@@ -266,7 +266,7 @@ Widget build(BuildContext context) {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Center(child: const Text('Ops')),
+          title: const Center(child: Text('Ops')),
           content:  Text(_Message,textAlign: TextAlign.center, style: TextStyle(color: _messageColor, fontSize: 17 ),),
           actions: [
             TextButton(
@@ -313,7 +313,7 @@ Widget build(BuildContext context) {
                         children: [
                           const Icon(Icons.timer_sharp, color: Colors.black45, size: 50),
                           const SizedBox(width: 15,),
-                          Text(formattedTime, style: TextStyle(fontSize: 20),),
+                          Text(formattedTime, style: const TextStyle(fontSize: 20),),
 
                         ],
 

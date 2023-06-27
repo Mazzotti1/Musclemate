@@ -231,7 +231,7 @@ Widget build(BuildContext context) {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Center(child: const Text('Ops')),
+          title: const Center(child: Text('Ops')),
           content:  Text(_Message,textAlign: TextAlign.center, style: TextStyle(color: _messageColor, fontSize: 17 ),),
           actions: [
             TextButton(

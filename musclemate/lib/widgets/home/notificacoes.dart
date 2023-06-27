@@ -9,21 +9,21 @@ class notificacoes extends StatelessWidget {
 Widget build(BuildContext context) {
   return Column(
     children: [
-      Padding(
-        padding: const EdgeInsets.only(top:20.0, left: 20),
+      const Padding(
+        padding: EdgeInsets.only(top:20.0, left: 20),
         child: Row(
           children: [
             Column(
-              children: const [
+              children: [
                 Icon(Icons.person, size: 50),
               ],
             ),
 
             Padding(
-              padding: const EdgeInsets.only(left:8.0),
+              padding: EdgeInsets.only(left:8.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text('Matheus deu like em uma atividade sua!'),
                   SizedBox(height: 5),
                   Text('Hoje 13:20',

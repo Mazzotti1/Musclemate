@@ -24,10 +24,10 @@ class PerfilProgress extends StatefulWidget {
 class _PerfilProgressState extends State<PerfilProgress> {
 
 
-
+  double mediaMaximaAtingida = 0.0;
   List<double> pesos = [];
-  List<int> meses = [];
-
+  List<String> dataTreino = [];
+  bool isLoading = true;
 @override
   void initState() {
     super.initState();
@@ -62,10 +62,24 @@ for (var data in responseData) {
   String dataDoTreino = data['dataDoTreino'];
 
   pesos.add(mediaDePesoUtilizado.toDouble());
-  meses.add(int.parse(dataDoTreino.split('/')[1]));
+  dataTreino.add(dataDoTreino);
+  double maxPeso = 0;
+for (var peso in pesos) {
+  if (peso > maxPeso) {
+    maxPeso = peso;
+  }
 }
 
+setState(() {
+  mediaMaximaAtingida = maxPeso;
+});
 
+   setState(() {
+        isLoading = false;
+      });
+}
+print(pesos);
+print(dataTreino);
     } else {
       if (response.statusCode == 400) {
         final error = jsonDecode(response.body)['error'];
@@ -80,6 +94,7 @@ for (var data in responseData) {
     print('Erro: $e');
   }
 }
+
 
   @override
   Widget build(BuildContext context) {
@@ -109,20 +124,23 @@ for (var data in responseData) {
                     color: Colors.black,
                   ),
                   const SizedBox(width: 10),
-                  const Text(
-                    'Carga máxima atingida: 42kg',
+                  Text(
+                    'Média máxima atingida: ${mediaMaximaAtingida}kg',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
                 ],
               ),
-                const SizedBox(height: 12),
-                WeightProgressChart(
-                  pesos: pesos,
-                  meses: meses,
-                ),
+                const SizedBox(height: 35),
+                 isLoading
+                  ? const CircularProgressIndicator()
+                  : WeightProgressChart(
+                      pesos: pesos,
+                      dataTreino: dataTreino,
+                    ),
             const SizedBox(height: 20),
               Column(
                 children: [

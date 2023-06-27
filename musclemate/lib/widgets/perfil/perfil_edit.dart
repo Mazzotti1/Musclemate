@@ -239,10 +239,10 @@ Widget build(BuildContext context) {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: TextField(
                           controller: sobrenomeController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Digite seu sobrenome',
                           ),
@@ -279,10 +279,10 @@ Widget build(BuildContext context) {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children:  [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: TextField(
                           controller: cidadeController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Cidade',
                           ),
@@ -313,10 +313,10 @@ Widget build(BuildContext context) {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children:  [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: TextField(
                           controller: estadoController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Estado',
                           ),
@@ -353,10 +353,10 @@ Widget build(BuildContext context) {
             child:  Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: TextField(
                     controller: biografiaController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: 'Biografia',
                       contentPadding: EdgeInsets.symmetric(vertical: 10.0),
@@ -395,10 +395,10 @@ Widget build(BuildContext context) {
             child: Column(
               children: [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8.0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
                   child: TextField(
                     controller: dataNascimentoController,
-                    decoration: InputDecoration(
+                    decoration: const InputDecoration(
                       border: InputBorder.none,
                       hintText: 'Data de nascimento',
                       contentPadding: EdgeInsets.symmetric(vertical: 10.0),
@@ -469,10 +469,10 @@ Widget build(BuildContext context) {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: TextField(
                           controller: pesoController,
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             border: InputBorder.none,
                             hintText: 'Peso',
                           ),
@@ -504,7 +504,7 @@ Widget build(BuildContext context) {
             },
             style: ButtonStyle(
               backgroundColor:
-                  MaterialStateProperty.all(Color.fromRGBO(230, 230, 230, 1)),
+                  MaterialStateProperty.all(const Color.fromRGBO(230, 230, 230, 1)),
             ),
             child: const Text('Concluído', style: TextStyle(color: Colors.black)),
           ),
