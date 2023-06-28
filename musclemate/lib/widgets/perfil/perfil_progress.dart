@@ -125,7 +125,7 @@ print(dataTreino);
                   ),
                   const SizedBox(width: 10),
                   Text(
-                    'Média máxima atingida: ${mediaMaximaAtingida}kg',
+                    'Média diária máxima atingida: ${mediaMaximaAtingida}kg',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
