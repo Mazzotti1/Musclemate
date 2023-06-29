@@ -48,65 +48,121 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
             ),
           ),
         ),
-        SizedBox(
-          width: 60,
-          height: 34,
-          child: TextButton(
-            onPressed: () {
-              setState(() {
-                showAvg = !showAvg;
-              });
-            },
-            child: Text(
-              'avg',
-              style: TextStyle(
-                fontSize: 12,
-                color: showAvg ? Colors.white.withOpacity(0.5) : Colors.white,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
 
+// Widget bottomTitleWidgets(double value, TitleMeta meta) {
+//   final style = TextStyle(
+//     fontWeight: FontWeight.bold,
+//     fontSize: 10,
+//   );
+
+//   final dateFormatter = DateFormat('dd/MM/yy');
+//   final monthAbbreviationFormatter = DateFormat('MMM');
+
+//   final formattedDates = widget.dataTreino.map((dateString) {
+//     final date = dateFormatter.parse(dateString);
+//     return monthAbbreviationFormatter.format(date);
+//   }).toList();
+
+//   if (formattedDates.length < 6) {
+//     // Retorne um título vazio ou alternativo se não houver dados suficientes.
+//     return Container();
+//   }
+
+//   final groupSize = 6;
+//   final firstGroupDates = formattedDates.sublist(0, groupSize);
+
+//   final mostFrequentMonth = _getMostFrequentMonth(firstGroupDates);
+
+//   final text = Text(mostFrequentMonth, style: style);
+
+//   return SideTitleWidget(
+//     axisSide: meta.axisSide,
+//     child: text,
+//   );
+// }
+
+// String _getMostFrequentMonth(List<String> dates) {
+//   final counts = <String, int>{};
+//   String mostFrequentMonth = '';
+
+//   for (final date in dates) {
+//     counts[date] = (counts[date] ?? 0) + 1;
+//     if (mostFrequentMonth.isEmpty || counts[date]! > counts[mostFrequentMonth]!) {
+//       mostFrequentMonth = date;
+//     }
+//   }
+
+//   return mostFrequentMonth;
+// }
 
 
-  LineChartData mainData() {
+
+ LineChartData mainData() {
+
   if (widget.pesos.length >= 6) {
     final List<double> groupedPesos = [];
     final List<double> groupedXValues = [];
+    final List<String> groupedDates = [];
+
     final int groupSize = 6;
     final int numGroups = widget.pesos.length ~/ groupSize;
 
     for (int i = 0; i < numGroups; i++) {
       final List<double> group = widget.pesos.sublist(i * groupSize, (i + 1) * groupSize);
       final double avgPeso = group.reduce((sum, peso) => sum + peso) / groupSize;
-      final double x = i.toDouble();
+      // aqui esta rolando a definição do que fica escrito nos elementos do X
+      //usar de formatação do widget.dataTreino [i * groupSize ] pra tentar resolver
+      final double dates = i.toDouble();
       groupedPesos.add(avgPeso);
-      groupedXValues.add(x);
+      groupedXValues.add(dates);
+
+      final String startDate = widget.dataTreino[i * groupSize]; // Data inicial do grupo
+      final String endDate = widget.dataTreino[(i + 1) * groupSize - 1]; // Data final do grupo
+      groupedDates.add('$startDate a $endDate'); // Adiciona a data inicial e final ao formato desejado
     }
+
+    final int maxLinesX = 8;
+    final int numLinesX = numGroups < maxLinesX ? maxLinesX : numGroups;
 
     final double maxPeso = groupedPesos.reduce((max, peso) => max > peso ? max : peso);
     final double minPeso = groupedPesos.reduce((min, peso) => min < peso ? min : peso);
-    final double maxY = maxPeso.ceilToDouble();
+    final double maxY = maxPeso.ceilToDouble() + 1;
     final double minY = minPeso.floorToDouble();
 
+    final List<double> verticalValues = [1, 2, 3, 4, 5];
+
     return LineChartData(
-      gridData: FlGridData(
-        show: true,
-        drawVerticalLine: true,
-        drawHorizontalLine: false,
-        verticalInterval: 1,
-        getDrawingVerticalLine: (value) {
+       gridData: FlGridData(
+    show: true,
+    drawVerticalLine: true,
+    drawHorizontalLine: false,
+    verticalInterval: 1,
+    getDrawingVerticalLine: (value) {
+      if (value < numGroups) {
+        if (verticalValues.contains(value)) {
           return FlLine(
-            color: Colors.black38,
+            color: Colors.black,
             strokeWidth: 1,
           );
-        },
-      ),
-      titlesData: FlTitlesData(
+        } else {
+          return FlLine(
+            color: Colors.black,
+            strokeWidth: 1,
+          );
+        }
+      } else {
+        return FlLine(
+          color: Colors.black,
+          strokeWidth: 1,
+        );
+      }
+    }
+       ),
 
+      titlesData: FlTitlesData(
         show: true,
         rightTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: false),
@@ -114,6 +170,7 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
         topTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
+
 
       ),
 
@@ -125,18 +182,19 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
         ),
       ),
 
-      minX: 0,
-      maxX: groupedXValues.length - 1,
+      minX: 1,
+      maxX: numLinesX.toDouble() - 1,
       minY: minY,
       maxY: maxY,
       lineBarsData: [
         LineChartBarData(
-          spots: List.generate(groupedXValues.length, (index) {
-            final double peso = groupedPesos[index];
-            final double x = groupedXValues[index];
-            return FlSpot(x, peso);
-          }),
-          isCurved: false,
+         spots: List.generate(groupedXValues.length, (index) {
+          final double peso = groupedPesos[index];
+          final double x = groupedXValues[index];
+          return FlSpot(x + 1, peso);
+        }),
+
+          isCurved: true,
           barWidth: 3,
           isStrokeCapRound: true,
           dotData: FlDotData(
@@ -147,47 +205,33 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
           ),
         ),
       ],
-      lineTouchData: LineTouchData(
+    lineTouchData: LineTouchData(
         enabled: true,
         touchTooltipData: LineTouchTooltipData(
           tooltipBgColor: Colors.black,
-        getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
-          final List<String> tooltips = [];
+          getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+            final List<String> tooltips = [];
 
-          for (final barSpot in touchedBarSpots) {
-            final int index = barSpot.x.toInt();
-            final double peso = barSpot.y;
-            final String formattedPeso = 'Média: ${peso.toStringAsFixed(1)}Kg';
+            for (final barSpot in touchedBarSpots) {
+              final double peso = barSpot.y;
+              final String formattedPeso = 'Média: ${peso.toStringAsFixed(1)}Kg';
 
-              final int groupIndex = index ~/ 6;
-              final int startIndex = groupIndex * 6;
-              final int endIndex = startIndex + 5;
+              final int index = barSpot.x.toInt() - 1;
+              final String dateRange = groupedDates[index]; // Obtém a data inicial e final do grupo
 
-              final DateTime startDate = DateFormat('dd/MM/yyyy').parse(widget.dataTreino[startIndex]);
-                final DateTime endDate = DateFormat('dd/MM/yyyy').parse(widget.dataTreino[endIndex]);
+              tooltips.add('$dateRange\n$formattedPeso');
+            }
 
-                final String formattedStartDay = DateFormat('d').format(startDate);
-                final String formattedStartMonth= DateFormat.MMM().format(startDate);
+            return tooltips.map((tooltip) {
+              return LineTooltipItem(
+                tooltip,
+                TextStyle(color: Colors.white, fontSize: 12),
+              );
+            }).toList();
+},
 
-                final String formattedEndDay= DateFormat('d').format(endDate);
-                final String formattedEndMonth = DateFormat.MMM().format(endDate);
-
-                final String groupedDate = '$formattedStartDay de $formattedStartMonth a $formattedEndDay de $formattedEndMonth';
-
-              tooltips.add('$groupedDate\n$formattedPeso');
-
-          }
-
-          return tooltips.map((tooltip) {
-            return LineTooltipItem(
-              tooltip,
-              TextStyle(color: Colors.white, fontSize: 12),
-            );
-          }).toList();
-        },
-
-        ),
-      ),
+              ),
+            ),
     );
   } else {
     final double maxPeso = widget.pesos.reduce((max, peso) => max > peso ? max : peso);
@@ -203,7 +247,7 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
         verticalInterval: 1,
         getDrawingVerticalLine: (value) {
           return FlLine(
-            color: Colors.black38,
+            color: Colors.black,
             strokeWidth: 1,
           );
         },
