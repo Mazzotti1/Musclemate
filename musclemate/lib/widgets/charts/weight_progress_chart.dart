@@ -2,6 +2,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 
 class WeightProgressChart extends StatefulWidget {
@@ -52,53 +53,49 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
     );
   }
 
-// Widget bottomTitleWidgets(double value, TitleMeta meta) {
-//   final style = TextStyle(
-//     fontWeight: FontWeight.bold,
-//     fontSize: 10,
-//   );
-
-//   final dateFormatter = DateFormat('dd/MM/yy');
-//   final monthAbbreviationFormatter = DateFormat('MMM');
-
-//   final formattedDates = widget.dataTreino.map((dateString) {
-//     final date = dateFormatter.parse(dateString);
-//     return monthAbbreviationFormatter.format(date);
-//   }).toList();
-
-//   if (formattedDates.length < 6) {
-//     // Retorne um título vazio ou alternativo se não houver dados suficientes.
-//     return Container();
-//   }
-
-//   final groupSize = 6;
-//   final firstGroupDates = formattedDates.sublist(0, groupSize);
-
-//   final mostFrequentMonth = _getMostFrequentMonth(firstGroupDates);
-
-//   final text = Text(mostFrequentMonth, style: style);
-
-//   return SideTitleWidget(
-//     axisSide: meta.axisSide,
-//     child: text,
-//   );
-// }
-
-// String _getMostFrequentMonth(List<String> dates) {
-//   final counts = <String, int>{};
-//   String mostFrequentMonth = '';
-
-//   for (final date in dates) {
-//     counts[date] = (counts[date] ?? 0) + 1;
-//     if (mostFrequentMonth.isEmpty || counts[date]! > counts[mostFrequentMonth]!) {
-//       mostFrequentMonth = date;
-//     }
-//   }
-
-//   return mostFrequentMonth;
-// }
 
 
+Widget bottomTitleWidgets(double value, TitleMeta meta) {
+  final style = TextStyle(
+    fontWeight: FontWeight.bold,
+    fontSize: 10,
+  );
+
+  final int index = value.toInt();
+  final int startIndex = index * 5;
+  final int endIndex = (index + 1) * 5;
+  final int dataTreinoLength = widget.dataTreino.length;
+
+  final List<String> groupDates = [];
+  for (int i = startIndex; i < endIndex && i < dataTreinoLength; i++) {
+    groupDates.add(widget.dataTreino[i]);
+  }
+print('Quantidade de grupos: ${groupDates.length}');
+  // Contagem dos meses
+  final Map<String, int> monthCount = {};
+  for (final date in groupDates) {
+    final DateTime parsedDate = DateFormat('dd/MM/yyyy', 'pt_BR').parse(date);
+    final String monthKey = DateFormat('MMMM', 'pt_BR').format(parsedDate);
+    monthCount[monthKey] = (monthCount[monthKey] ?? 0) + 1;
+  }
+
+  // Encontrar o mês com maior contagem
+  String mostCommonMonth = '';
+  int maxCount = 0;
+  monthCount.forEach((month, count) {
+    if (count > maxCount) {
+      maxCount = count;
+      mostCommonMonth = month;
+    }
+  });
+
+  final text = Text(mostCommonMonth, style: style);
+
+  return SideTitleWidget(
+    axisSide: meta.axisSide,
+    child: text,
+  );
+}
 
  LineChartData mainData() {
 
@@ -109,19 +106,22 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
 
     final int groupSize = 6;
     final int numGroups = widget.pesos.length ~/ groupSize;
-
+     initializeDateFormatting();
     for (int i = 0; i < numGroups; i++) {
       final List<double> group = widget.pesos.sublist(i * groupSize, (i + 1) * groupSize);
       final double avgPeso = group.reduce((sum, peso) => sum + peso) / groupSize;
-      // aqui esta rolando a definição do que fica escrito nos elementos do X
-      //usar de formatação do widget.dataTreino [i * groupSize ] pra tentar resolver
+
       final double dates = i.toDouble();
       groupedPesos.add(avgPeso);
       groupedXValues.add(dates);
 
-      final String startDate = widget.dataTreino[i * groupSize]; // Data inicial do grupo
-      final String endDate = widget.dataTreino[(i + 1) * groupSize - 1]; // Data final do grupo
-      groupedDates.add('$startDate a $endDate'); // Adiciona a data inicial e final ao formato desejado
+      final DateTime startDate = DateFormat('dd/MM/yyyy').parse(widget.dataTreino[i * groupSize]);
+      final DateTime endDate = DateFormat('dd/MM/yyyy').parse(widget.dataTreino[(i + 1) * groupSize - 1]);
+
+       final DateFormat formattedDate = DateFormat("dd 'de' MMM", 'pt_BR');
+      final String formattedStartDate = formattedDate.format(startDate);
+      final String formattedEndDate = formattedDate.format(endDate);
+      groupedDates.add('$formattedStartDate a $formattedEndDate');
     }
 
     final int maxLinesX = 8;
@@ -170,7 +170,12 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
         topTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-
+        bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: bottomTitleWidgets
+          ),
+        )
 
       ),
 
@@ -183,7 +188,7 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
       ),
 
       minX: 1,
-      maxX: numLinesX.toDouble() - 1,
+      maxX: numLinesX.toDouble(),
       minY: minY,
       maxY: maxY,
       lineBarsData: [
@@ -228,7 +233,7 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
                 TextStyle(color: Colors.white, fontSize: 12),
               );
             }).toList();
-},
+        },
 
               ),
             ),
