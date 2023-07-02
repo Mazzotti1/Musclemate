@@ -23,47 +23,89 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
 
   bool showAvg = false;
 
- @override
+   Future<List<double>> loadData() async {
+    // Simular uma chamada assíncrona para carregar dados
+    await Future.delayed(const Duration(seconds: 2));
+    return widget.pesos;
+  }
+
+  @override
   Widget build(BuildContext context) {
-     if (widget.pesos.isEmpty || widget.dataTreino.isEmpty) {
-    return const Center(
-      child: Text(
-        'Ainda não há dados suficientes.',
-        style: TextStyle(fontSize: 16),
-      ),
+    return FutureBuilder<List<double>>(
+      future: loadData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+
+          return Center(child: Text('Erro ao carregar os dados.'));
+        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+
+          return AspectRatio(
+            aspectRatio: 1.30,
+            child: Padding(
+              padding: const EdgeInsets.only(
+                right: 30,
+                left: 12,
+                top: 0,
+                bottom: 0,
+              ),
+              child: LineChart(mainData()),
+            ),
+          );
+        } else {
+
+          return const Center(
+            child: Text(
+              'Ainda não há dados suficientes.',
+              style: TextStyle(fontSize: 16),
+            ),
+          );
+        }
+      },
     );
   }
-    return Stack(
-      children: <Widget>[
-        AspectRatio(
-          aspectRatio: 1.30,
-          child: Padding(
-            padding: const EdgeInsets.only(
-              right: 30,
-              left: 12,
-              top: 0,
-              bottom: 0,
-            ),
-            child: LineChart(
-               mainData(),
-            ),
-          ),
-        ),
-      ],
+
+Widget bottomTitleWidgetsSingle(double value, TitleMeta meta) {
+  final style = TextStyle(
+    fontWeight: FontWeight.bold,
+    fontSize: 10,
+  );
+
+  final List<String> datas = widget.dataTreino;
+
+  if (value >= 0 && value < datas.length) {
+    final String dateValue = datas[value.toInt()];
+
+    final DateTime parsedDate = DateFormat('dd/MM/yyyy').parse(dateValue);
+
+    final formattedDate = DateFormat('dd/MM', 'pt_BR').format(parsedDate);
+
+    final text = Text(
+      formattedDate,
+      style: style,
     );
+
+    return SideTitleWidget(
+      axisSide: meta.axisSide,
+      child: text,
+    );
+  } else {
+
+    return SizedBox.shrink();
   }
+}
 
-
-
-Widget bottomTitleWidgets(double value, TitleMeta meta) {
+Widget bottomTitleWidgetsGroup(double value, TitleMeta meta) {
   final style = TextStyle(
     fontWeight: FontWeight.bold,
     fontSize: 10,
   );
 
   final int index = value.toInt();
-  final int startIndex = index * 5;
-  final int endIndex = (index + 1) * 5;
+  final int startIndex = index * 6;
+  final int endIndex = (index + 1) * 6;
   final int dataTreinoLength = widget.dataTreino.length;
 
   final List<String> groupDates = [];
@@ -75,7 +117,7 @@ print('Quantidade de grupos: ${groupDates.length}');
   final Map<String, int> monthCount = {};
   for (final date in groupDates) {
     final DateTime parsedDate = DateFormat('dd/MM/yyyy', 'pt_BR').parse(date);
-    final String monthKey = DateFormat('MMMM', 'pt_BR').format(parsedDate);
+    final String monthKey = DateFormat.MMM('pt_BR').format(parsedDate);
     monthCount[monthKey] = (monthCount[monthKey] ?? 0) + 1;
   }
 
@@ -100,12 +142,14 @@ print('Quantidade de grupos: ${groupDates.length}');
  LineChartData mainData() {
 
   if (widget.pesos.length >= 6) {
+
     final List<double> groupedPesos = [];
     final List<double> groupedXValues = [];
     final List<String> groupedDates = [];
 
     final int groupSize = 6;
     final int numGroups = widget.pesos.length ~/ groupSize;
+
      initializeDateFormatting();
     for (int i = 0; i < numGroups; i++) {
       final List<double> group = widget.pesos.sublist(i * groupSize, (i + 1) * groupSize);
@@ -133,6 +177,9 @@ print('Quantidade de grupos: ${groupDates.length}');
     final double minY = minPeso.floorToDouble();
 
     final List<double> verticalValues = [1, 2, 3, 4, 5];
+
+
+
 
     return LineChartData(
        gridData: FlGridData(
@@ -173,7 +220,7 @@ print('Quantidade de grupos: ${groupDates.length}');
         bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
-            getTitlesWidget: bottomTitleWidgets
+            getTitlesWidget: bottomTitleWidgetsGroup
           ),
         )
 
@@ -184,6 +231,7 @@ print('Quantidade de grupos: ${groupDates.length}');
         border: const Border(
           bottom: BorderSide(color: Color(0xff37434d)),
           left: BorderSide(color: Color(0xff37434d)),
+          right: BorderSide(color: Color(0xff37434d)),
         ),
       ),
 
@@ -243,8 +291,9 @@ print('Quantidade de grupos: ${groupDates.length}');
     final double minPeso = widget.pesos.reduce((min, peso) => min < peso ? min : peso);
     final double maxY = maxPeso.ceilToDouble();
     final double minY = minPeso.floorToDouble();
-
+     initializeDateFormatting();
     return LineChartData(
+
       gridData: FlGridData(
         show: true,
         drawVerticalLine: true,
@@ -259,18 +308,27 @@ print('Quantidade de grupos: ${groupDates.length}');
       ),
       titlesData: FlTitlesData(
         show: true,
+
         rightTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
         topTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
+                bottomTitles: AxisTitles(
+          sideTitles: SideTitles(
+            showTitles: true,
+            getTitlesWidget: bottomTitleWidgetsSingle
+          ),
+        )
       ),
+
       borderData: FlBorderData(
         show: true,
         border: const Border(
           bottom: BorderSide(color: Color(0xff37434d)),
           left: BorderSide(color: Color(0xff37434d)),
+          right: BorderSide(color: Color(0xff37434d)),
         ),
       ),
       minX: 0,
@@ -284,7 +342,7 @@ print('Quantidade de grupos: ${groupDates.length}');
             final double x = index.toDouble();
             return FlSpot(x, peso);
           }),
-          isCurved: false,
+          isCurved: true,
           barWidth: 3,
           isStrokeCapRound: true,
           dotData: FlDotData(
@@ -298,7 +356,7 @@ print('Quantidade de grupos: ${groupDates.length}');
       lineTouchData: LineTouchData(
         enabled: true,
         touchTooltipData: LineTouchTooltipData(
-          tooltipBgColor: Colors.blue,
+          tooltipBgColor: Colors.black,
           getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
             return touchedBarSpots.map((barSpot) {
               final int index = barSpot.x.toInt();

@@ -25,9 +25,12 @@ class _PerfilProgressState extends State<PerfilProgress> {
 
 
   double mediaMaximaAtingida = 0.0;
+   Duration tempoMaximoAtingido = Duration.zero;
+
   List<double> pesos = [];
   List<String> dataTreino = [];
-  bool isLoading = true;
+  List<String> tempos = [];
+
 @override
   void initState() {
     super.initState();
@@ -60,26 +63,39 @@ class _PerfilProgressState extends State<PerfilProgress> {
 for (var data in responseData) {
   int mediaDePesoUtilizado = data['mediaDePesoUtilizado'];
   String dataDoTreino = data['dataDoTreino'];
+  String tempo = data['tempo'];
 
+  tempos.add(tempo);
   pesos.add(mediaDePesoUtilizado.toDouble());
   dataTreino.add(dataDoTreino);
   double maxPeso = 0;
+
 for (var peso in pesos) {
   if (peso > maxPeso) {
     maxPeso = peso;
   }
 }
+print(tempos);
+Duration maxTempos = Duration.zero;
 
+for (String tempo in tempos) {
+  List<String> tempoParts = tempo.split(':');
+  int hours = int.parse(tempoParts[0]);
+  int minutes = int.parse(tempoParts[1]);
+  int seconds = int.parse(tempoParts[2]);
+
+  Duration tempoDuration = Duration(hours: hours, minutes: minutes, seconds: seconds);
+  maxTempos += tempoDuration;
+}
+
+print('Tempo máximo: $maxTempos');
 setState(() {
   mediaMaximaAtingida = maxPeso;
+  tempoMaximoAtingido = maxTempos;
 });
-
-   setState(() {
-        isLoading = false;
-      });
 }
-print(pesos);
-print(dataTreino);
+
+
     } else {
       if (response.statusCode == 400) {
         final error = jsonDecode(response.body)['error'];
@@ -95,6 +111,17 @@ print(dataTreino);
   }
 }
 
+String formatDuration(Duration duration) {
+  String twoDigits(int n) {
+    if (n >= 10) return "$n";
+    return "0$n";
+  }
+
+  String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+  String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+
+  return "${duration.inHours}:$twoDigitMinutes:$twoDigitSeconds";
+}
 
   @override
   Widget build(BuildContext context) {
@@ -135,9 +162,7 @@ print(dataTreino);
                 ],
               ),
                 const SizedBox(height: 35),
-                 isLoading
-                  ? const CircularProgressIndicator()
-                  : WeightProgressChart(
+                  WeightProgressChart(
                       pesos: pesos,
                       dataTreino: dataTreino,
                     ),
@@ -161,9 +186,9 @@ print(dataTreino);
                         color: Colors.black,
                       ),
                       const SizedBox(width: 10),
-                      const Text(
-                        'Tempo total de treino no ano: 23h',
-                        style: TextStyle(
+                       Text(
+                        'Tempo total de treino no ano: ${formatDuration(tempoMaximoAtingido)}',
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
                         ),
@@ -171,7 +196,11 @@ print(dataTreino);
                     ],
                   ),
                   const SizedBox(height: 12),
-                  const ExerciseTimeChart(),
+                   ExerciseTimeChart(
+                      pesos: pesos,
+                      dataTreino: dataTreino,
+                      tempos:tempos
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
