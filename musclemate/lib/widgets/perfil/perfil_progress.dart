@@ -7,7 +7,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 
 import 'package:musclemate/widgets/charts/exercise_time_chart.dart';
-import 'package:musclemate/widgets/charts/exercise_volume_chart.dart';
+
 import 'package:musclemate/widgets/charts/weight_progress_chart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -30,6 +30,8 @@ class _PerfilProgressState extends State<PerfilProgress> {
   List<double> pesos = [];
   List<String> dataTreino = [];
   List<String> tempos = [];
+  List<double> temposDouble = [];
+
 
 @override
   void initState() {
@@ -60,6 +62,7 @@ class _PerfilProgressState extends State<PerfilProgress> {
 
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
+
 for (var data in responseData) {
   int mediaDePesoUtilizado = data['mediaDePesoUtilizado'];
   String dataDoTreino = data['dataDoTreino'];
@@ -68,16 +71,16 @@ for (var data in responseData) {
   tempos.add(tempo);
   pesos.add(mediaDePesoUtilizado.toDouble());
   dataTreino.add(dataDoTreino);
-  double maxPeso = 0;
 
+
+  double maxPeso = 0;
 for (var peso in pesos) {
   if (peso > maxPeso) {
     maxPeso = peso;
   }
 }
-print(tempos);
-Duration maxTempos = Duration.zero;
 
+Duration maxTempos = Duration.zero;
 for (String tempo in tempos) {
   List<String> tempoParts = tempo.split(':');
   int hours = int.parse(tempoParts[0]);
@@ -88,13 +91,26 @@ for (String tempo in tempos) {
   maxTempos += tempoDuration;
 }
 
-print('Tempo máximo: $maxTempos');
+
+temposDouble = tempos.map((tempo) {
+  List<String> parts = tempo.split(':');
+  int horas = int.parse(parts[0]);
+  int minutos = int.parse(parts[1]);
+  int segundos = int.parse(parts[2]);
+  int totalMinutos = (horas * 60) + minutos + (segundos > 0 ? 1 : 0);
+
+  return totalMinutos.toDouble();
+}).toList();
+
+print(temposDouble);
+
+
+
 setState(() {
   mediaMaximaAtingida = maxPeso;
   tempoMaximoAtingido = maxTempos;
 });
 }
-
 
     } else {
       if (response.statusCode == 400) {
@@ -123,8 +139,46 @@ String formatDuration(Duration duration) {
   return "${duration.inHours}:$twoDigitMinutes:$twoDigitSeconds";
 }
 
+bool isModalVisible = false;
+int currentGraphIndex = 1;
+
+List<String> explanations = [
+  'O gráfico é primeiramente baseado em peso (KGs) por dias, porém no momento que 6 dias são registrados ele começa a comparar media de peso dos 6 dias entre as semanas',
+  'O gráfico é a duração dos seus treinos(Minutos) baseados em cada dia, no momento que 6 dias são registrados ele começa a comparar a media de minutos dos 6 dias entre as semanas ',
+];
+
+
+void _showExplanationModal(BuildContext context, String explanation) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Explicações do Gráfico'),
+        content: Text(explanation),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Fechar o modal
+            },
+            child: Text('Fechar'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
   @override
   Widget build(BuildContext context) {
+
+if (isModalVisible) {
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _showExplanationModal(context, explanations[currentGraphIndex]);
+  });
+}
+
+
+
     return Padding(
       padding: const EdgeInsets.only(top: 20.0,),
       child: Container(
@@ -135,8 +189,17 @@ String formatDuration(Duration duration) {
           child: Column(
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
+               IconButton(
+                  icon: Icon(Icons.help_outline_rounded),
+                  onPressed: () {
+                    setState(() {
+                      currentGraphIndex = 0;
+                      isModalVisible = true;
+                    });
+                  },
+                ),
                   const Text(
                     'Progressão de peso',
                     style: TextStyle(
@@ -151,6 +214,7 @@ String formatDuration(Duration duration) {
                     color: Colors.black,
                   ),
                   const SizedBox(width: 10),
+
                   Text(
                     'Média diária máxima atingida: ${mediaMaximaAtingida}kg',
                     style: TextStyle(
@@ -172,6 +236,15 @@ String formatDuration(Duration duration) {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                         IconButton(
+                            icon: Icon(Icons.help_outline_rounded),
+                            onPressed: () {
+                              setState(() {
+                                currentGraphIndex = 1;
+                                isModalVisible = true;
+                              });
+                            },
+                          ),
                       const Text(
                         'Duração do treino',
                         style: TextStyle(
@@ -195,55 +268,20 @@ String formatDuration(Duration duration) {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 12, ),
                    ExerciseTimeChart(
-                      pesos: pesos,
                       dataTreino: dataTreino,
-                      tempos:tempos
+                      tempos:temposDouble
                   ),
+                const SizedBox(height: 20, ),
                 ],
-              ),
-              const SizedBox(height: 20),
-              Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        'Vol. de treino',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Container(
-                        width: 1,
-                        height: 18,
-                        color: Colors.black,
-                      ),
-                      const SizedBox(width: 10),
-                      const Text(
-                        'Volume máximo atingido: 230kg',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  const Padding(
-                     padding: EdgeInsets.only(bottom: 50.0),
-                    child: ExerciseVolumeChart(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-            ],
-          ),
-        ),
-      ),
-    );
+
+              )
+
+              ]
+            )
+          )
+        )
+      );
   }
 }

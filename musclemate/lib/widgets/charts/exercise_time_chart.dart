@@ -5,13 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 class ExerciseTimeChart extends StatefulWidget {
-     final List<double> pesos;
      final List<String> dataTreino;
-     final List<String> tempos;
+     final List<double> tempos;
 
     const ExerciseTimeChart({
     Key? key,
-    required this.pesos,
     required this.dataTreino,
     required this.tempos
   }) : super(key: key);
@@ -28,7 +26,7 @@ class _ExerciseTimeChartState extends State<ExerciseTimeChart> {
    Future<List<double>> loadData() async {
     // Simular uma chamada assíncrona para carregar dados
     await Future.delayed(const Duration(seconds: 2));
-    return widget.pesos;
+    return widget.tempos;
   }
 
   @override
@@ -46,8 +44,8 @@ class _ExerciseTimeChartState extends State<ExerciseTimeChart> {
 
           return AspectRatio(
             aspectRatio: 1.30,
-            child: Padding(
-              padding: const EdgeInsets.only(
+            child: Container(
+              margin: const EdgeInsets.only(
                 right: 30,
                 left: 12,
                 top: 0,
@@ -68,6 +66,39 @@ class _ExerciseTimeChartState extends State<ExerciseTimeChart> {
       },
     );
   }
+
+//Arrumar a
+// Widget leftTitleWidgets(double value, TitleMeta meta) {
+//   final List<double> tempos = widget.tempos;
+//   String tempoFormatado = '';
+
+//   for (double tempo in tempos) {
+//     tempoFormatado = formatarTempoTitle(tempo);
+//   }
+
+//   final text = Text(tempoFormatado,);
+
+//   if (tempoFormatado.isNotEmpty) {
+//     return
+//        SideTitleWidget(
+//         axisSide: meta.axisSide,
+//         child: text,
+//       );
+
+//   } else {
+//     return SizedBox.shrink();
+//   }
+// }
+
+// String formatarTempoTitle(double minutos) {
+//   int horas = minutos ~/ 60;
+//   int minutosRestantes = minutos.toInt() % 60;
+
+//   String formattedHora = horas.toString().padLeft(2, '0');
+//   String formattedMinutos = minutosRestantes.toString().padLeft(2, '0');
+
+//   return "$formattedHora$formattedMinutos";
+// }
 
 Widget bottomTitleWidgetsSingle(double value, TitleMeta meta) {
   final style = TextStyle(
@@ -141,24 +172,35 @@ print('Quantidade de grupos: ${groupDates.length}');
   );
 }
 
+String formatarTempoTooltip(double minutos) {
+  int horas = minutos ~/ 60;
+  int minutosRestantes = minutos.toInt() % 60;
+
+  String formattedHora = horas.toString().padLeft(2, '0');
+  String formattedMinutos = minutosRestantes.toString().padLeft(2, '0');
+
+  return "$formattedHora h $formattedMinutos";
+}
+
+
  LineChartData mainData() {
 
-  if (widget.pesos.length >= 6) {
+  if (widget.tempos.length >= 6) {
 
-    final List<double> groupedPesos = [];
+    final List<double> groupedTempos = [];
     final List<double> groupedXValues = [];
     final List<String> groupedDates = [];
 
     final int groupSize = 6;
-    final int numGroups = widget.pesos.length ~/ groupSize;
+    final int numGroups = widget.tempos.length ~/ groupSize;
 
      initializeDateFormatting();
     for (int i = 0; i < numGroups; i++) {
-      final List<double> group = widget.pesos.sublist(i * groupSize, (i + 1) * groupSize);
-      final double avgPeso = group.reduce((sum, peso) => sum + peso) / groupSize;
+      final List<double> group = widget.tempos.sublist(i * groupSize, (i + 1) * groupSize);
+      final double avgTempos = group.reduce((sum, tempos) => sum + tempos) / groupSize;
 
       final double dates = i.toDouble();
-      groupedPesos.add(avgPeso);
+      groupedTempos.add(avgTempos);
       groupedXValues.add(dates);
 
       final DateTime startDate = DateFormat('dd/MM/yyyy').parse(widget.dataTreino[i * groupSize]);
@@ -173,13 +215,12 @@ print('Quantidade de grupos: ${groupDates.length}');
     final int maxLinesX = 8;
     final int numLinesX = numGroups < maxLinesX ? maxLinesX : numGroups;
 
-    final double maxPeso = groupedPesos.reduce((max, peso) => max > peso ? max : peso);
-    final double minPeso = groupedPesos.reduce((min, peso) => min < peso ? min : peso);
-    final double maxY = maxPeso.ceilToDouble() + 1;
-    final double minY = minPeso.floorToDouble();
+    final double maxTempos = groupedTempos.reduce((max, tempos) => max > tempos ? max : tempos);
+    final double minTempos = groupedTempos.reduce((min, tempos) => min < tempos ? min : tempos);
+    final double maxY = maxTempos.ceilToDouble() + 1;
+    final double minY = minTempos.floorToDouble();
 
     final List<double> verticalValues = [1, 2, 3, 4, 5];
-
 
 
 
@@ -244,9 +285,9 @@ print('Quantidade de grupos: ${groupDates.length}');
       lineBarsData: [
         LineChartBarData(
          spots: List.generate(groupedXValues.length, (index) {
-          final double peso = groupedPesos[index];
+          final double tempos = groupedTempos[index];
           final double x = groupedXValues[index];
-          return FlSpot(x + 1, peso);
+          return FlSpot(x + 1, tempos);
         }),
 
           isCurved: true,
@@ -268,13 +309,13 @@ print('Quantidade de grupos: ${groupDates.length}');
             final List<String> tooltips = [];
 
             for (final barSpot in touchedBarSpots) {
-              final double peso = barSpot.y;
-              final String formattedPeso = 'Média: ${peso.toStringAsFixed(1)}Kg';
+              final double tempo = barSpot.y;
+              final String formattedTempos = 'Média: ${formatarTempoTooltip(tempo)} min';
 
               final int index = barSpot.x.toInt() - 1;
               final String dateRange = groupedDates[index]; // Obtém a data inicial e final do grupo
 
-              tooltips.add('$dateRange\n$formattedPeso');
+              tooltips.add('$dateRange\n$formattedTempos');
             }
 
             return tooltips.map((tooltip) {
@@ -289,11 +330,12 @@ print('Quantidade de grupos: ${groupDates.length}');
             ),
     );
   } else {
-    final double maxPeso = widget.pesos.reduce((max, peso) => max > peso ? max : peso);
-    final double minPeso = widget.pesos.reduce((min, peso) => min < peso ? min : peso);
-    final double maxY = maxPeso.ceilToDouble();
-    final double minY = minPeso.floorToDouble();
+    final double maxTempo = widget.tempos.reduce((max, tempos) => max > tempos ? max : tempos);
+    final double minTempo = widget.tempos.reduce((min, tempos) => min < tempos ? min : tempos);
+    final double maxY = maxTempo.ceilToDouble();
+    final double minY = minTempo.floorToDouble();
      initializeDateFormatting();
+
     return LineChartData(
 
       gridData: FlGridData(
@@ -310,19 +352,19 @@ print('Quantidade de grupos: ${groupDates.length}');
       ),
       titlesData: FlTitlesData(
         show: true,
-
         rightTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
         topTitles: AxisTitles(
           sideTitles: SideTitles(showTitles: false),
         ),
-                bottomTitles: AxisTitles(
+        bottomTitles: AxisTitles(
           sideTitles: SideTitles(
             showTitles: true,
             getTitlesWidget: bottomTitleWidgetsSingle
           ),
-        )
+        ),
+
       ),
 
       borderData: FlBorderData(
@@ -334,15 +376,15 @@ print('Quantidade de grupos: ${groupDates.length}');
         ),
       ),
       minX: 0,
-      maxX: widget.pesos.length - 1,
+      maxX: widget.tempos.length - 1,
       minY: minY,
       maxY: maxY,
       lineBarsData: [
         LineChartBarData(
-          spots: List.generate(widget.pesos.length, (index) {
-            final double peso = widget.pesos[index];
+          spots: List.generate(widget.tempos.length, (index) {
+            final double tempo = widget.tempos[index];
             final double x = index.toDouble();
-            return FlSpot(x, peso);
+            return FlSpot(x, tempo);
           }),
           isCurved: true,
           barWidth: 3,
@@ -362,14 +404,14 @@ print('Quantidade de grupos: ${groupDates.length}');
           getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
             return touchedBarSpots.map((barSpot) {
               final int index = barSpot.x.toInt();
-              final double peso = barSpot.y;
+              final double tempos = barSpot.y;
               final String date = widget.dataTreino[index];
-              final String formattedPeso = '${peso.toStringAsFixed(1)}Kg';
+              final String formattedTempos = formatarTempoTooltip(tempos);
               final List<String> dateParts = date.split('/');
               final String formattedDate = '${dateParts[0]}/${dateParts[1]}';
 
               return LineTooltipItem(
-                '$formattedDate\n$formattedPeso',
+                '$formattedDate\n$formattedTempos',
                 TextStyle(color: Colors.white, fontSize: 12),
               );
             }).toList();
