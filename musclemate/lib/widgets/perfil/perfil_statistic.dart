@@ -34,8 +34,21 @@ class _PerfilStatisticState extends State<PerfilStatistic>{
   List<double> pesos = [];
   List<String> dataTreino = [];
 
+  List<String> temposMensal = [];
+  List<double> pesosMensal = [];
+  List<String> dataTreinoMensal = [];
 
+  List<String> temposAnual = [];
+  List<double> pesosAnual = [];
+  List<String> dataTreinoAnual = [];
 
+  double mediaMaximaAtingidaMensal = 0.0;
+  Duration tempoMaximoAtingidoMensal= Duration.zero;
+  int treinosTotaisMensal = 0;
+
+  double mediaMaximaAtingidaAnual = 0.0;
+  Duration tempoMaximoAtingidoAnual= Duration.zero;
+  int treinosTotaisAnual = 0;
 
   Future<void> findTraining() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -60,19 +73,41 @@ class _PerfilStatisticState extends State<PerfilStatistic>{
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
 
-for (var data in responseData) {
-  int mediaDePesoUtilizado = data['mediaDePesoUtilizado'];
-  String tempo = data['tempo'];
-  String dataDoTreino = data['dataDoTreino'];
+        DateTime currentDate = DateTime.now();
 
-  tempos.add(tempo);
-  pesos.add(mediaDePesoUtilizado.toDouble());
-  dataTreino.add(dataDoTreino);
+      for (var data in responseData) {
+        int mediaDePesoUtilizado = data['mediaDePesoUtilizado'];
+        String tempo = data['tempo'];
+        String dataDoTreino = data['dataDoTreino'];
+        DateTime treinoDate = DateTime.parse(_convertToDate(dataDoTreino));
 
-double maxPeso = 0;
-for (var peso in pesos) {
-  maxPeso += peso;
-}
+        tempos.add(tempo);
+        pesos.add(mediaDePesoUtilizado.toDouble());
+        dataTreino.add(dataDoTreino);
+
+        temposMensal.add(tempo);
+        pesosMensal.add(mediaDePesoUtilizado.toDouble());
+        dataTreinoMensal.add(dataDoTreino);
+
+        temposAnual.add(tempo);
+        pesosAnual.add(mediaDePesoUtilizado.toDouble());
+        dataTreinoAnual.add(dataDoTreino);
+
+      double maxPeso = 0;
+      for (var peso in pesos) {
+        maxPeso += peso;
+      }
+
+      double maxPesoMensal = 0;
+        for (var peso in pesosMensal) {
+        maxPesoMensal += peso;
+      }
+
+
+      double maxPesoAnual = 0;
+        for (var peso in pesosAnual) {
+         maxPesoAnual += peso;
+      }
 
 
 Duration maxTempos = Duration.zero;
@@ -86,15 +121,59 @@ for (String tempo in tempos) {
   maxTempos += tempoDuration;
 }
 
+Duration maxTemposMensal = Duration.zero;
+for (String tempo in temposMensal) {
+  List<String> tempoParts = tempo.split(':');
+  int hours = int.parse(tempoParts[0]);
+  int minutes = int.parse(tempoParts[1]);
+  int seconds = int.parse(tempoParts[2]);
 
-
-setState(() {
-  mediaMaximaAtingida = maxPeso;
-  tempoMaximoAtingido = maxTempos;
-  treinosTotais = dataTreino.length;
-  });
+  Duration tempoDuration = Duration(hours: hours, minutes: minutes, seconds: seconds);
+  maxTemposMensal += tempoDuration;
 }
 
+Duration maxTemposAnual = Duration.zero;
+for (String tempo in temposAnual) {
+  List<String> tempoParts = tempo.split(':');
+  int hours = int.parse(tempoParts[0]);
+  int minutes = int.parse(tempoParts[1]);
+  int seconds = int.parse(tempoParts[2]);
+
+  Duration tempoDuration = Duration(hours: hours, minutes: minutes, seconds: seconds);
+    maxTemposAnual += tempoDuration;
+}
+
+setState(() {
+        mediaMaximaAtingida = maxPeso;
+        tempoMaximoAtingido = maxTempos;
+        treinosTotais = dataTreino.length;
+
+        tempoMaximoAtingidoMensal = maxTemposMensal;
+        mediaMaximaAtingidaMensal = maxPesoMensal;
+        treinosTotaisMensal = dataTreinoMensal.length;
+
+        tempoMaximoAtingidoAnual = maxTemposAnual;
+        mediaMaximaAtingidaAnual = maxPesoAnual;
+        treinosTotaisAnual = dataTreinoAnual.length;
+
+        if (treinoDate.month != currentDate.month) {
+          mediaMaximaAtingidaMensal = 0.0;
+          tempoMaximoAtingidoMensal = Duration.zero;
+          treinosTotaisMensal = 0;
+            temposMensal = [];
+            pesosMensal = [];
+            dataTreinoMensal = [];
+        }
+         if (treinoDate.year != currentDate.year) {
+          mediaMaximaAtingidaAnual = 0.0;
+          tempoMaximoAtingidoAnual = Duration.zero;
+          treinosTotaisAnual = 0;
+            temposAnual = [];
+            pesosAnual = [];
+            dataTreinoAnual = [];
+        }
+      });
+    }
     } else {
       if (response.statusCode == 400) {
         final error = jsonDecode(response.body)['error'];
@@ -108,6 +187,12 @@ setState(() {
   } catch (e) {
     print('Erro: $e');
   }
+}
+
+String _convertToDate(String date) {
+  List<String> dateParts = date.split('/');
+  String formattedDate = '${dateParts[2]}-${dateParts[1]}-${dateParts[0]}';
+  return formattedDate;
 }
 
 String formatDuration(Duration duration) {
@@ -127,16 +212,16 @@ String formatDuration(Duration duration) {
   final List<Map<String, String>> items = [
     {
       "title": "Média de treinos mensal",
-      "treinos": "1",
-      "tempo": "1h13min",
-      "pesoLevantado": "62kg",
+      "treinos": '${treinosTotaisMensal}',
+      "tempo": "${formatDuration(tempoMaximoAtingidoMensal)}",
+      "pesoLevantado": "${mediaMaximaAtingidaMensal}",
       "tempoCardio": "Em breve"
     },
     {
       "title": "Acumulado anual",
-      "treinos": "1",
-      "tempo": "1h13min",
-      "pesoLevantado": "62kg",
+      "treinos": '${treinosTotaisAnual}',
+      "tempo": "${formatDuration(tempoMaximoAtingidoAnual)}",
+      "pesoLevantado": "${mediaMaximaAtingidaAnual}",
       "tempoCardio": "Em breve"
     },
     {
