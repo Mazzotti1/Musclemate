@@ -1,7 +1,7 @@
 
 
 import 'dart:convert';
-import 'dart:io';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -17,6 +17,10 @@ import '../../pages/perfil/perfil_statistic_page.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
+
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
+
 
 
 class Perfil extends StatefulWidget {
@@ -61,23 +65,13 @@ class _PerfilState extends State<Perfil>{
   }
 
     String userName = '';
+    String userId = '';
 
      @override
   void initState() {
     super.initState();
     fetchUserData();
   }
-
-Future<void> selecionarImagem() async {
-  final picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-  if (pickedFile != null) {
-      print(pickedFile);
-  }
-}
-
-
 
  Future<void> fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -101,9 +95,11 @@ Future<void> selecionarImagem() async {
 
       if (response.statusCode == 200) {
      final userData = jsonDecode(response.body) as Map<String, dynamic>;
-      setState(() {
-        userName=  userData['nome'] ?? '';
 
+      setState(() {
+        userName  =  userData['nome'] ?? '';
+        userId =  userData['sub'] ?? '';
+         imageUrlController = userData['imageUrl'] ?? '';
       });
 
       } else {
@@ -114,30 +110,113 @@ Future<void> selecionarImagem() async {
     }
   }
 
+String imageUrlController = '';
+
+Future<void> selecionarImagem(String userId, String userName) async {
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+  if (pickedFile != null) {
+    File imageFile = File(pickedFile.path);
+
+   final storage = FirebaseStorage.instance;
+final storageRef = storage.ref().child('imagePerfil/$userName/$userId/${DateTime.now().millisecondsSinceEpoch}_${pickedFile.path.split('/').last}');
+
+    final uploadTask = storageRef.putFile(imageFile);
+
+    uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+      print('Upload em andamento: ${snapshot.bytesTransferred}/${snapshot.totalBytes}');
+    }, onError: (Object e) {
+      print('Erro durante o upload: $e');
+    });
+
+    final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
+
+    final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+    imageUrlController = downloadUrl;
+      setState(() {
+    imageUrlController = downloadUrl;
+  });
+    print('Imagem salva com sucesso: $downloadUrl');
+    await updateUser();
+  }
+}
+
+Map<String, dynamic> getModifiedFields() {
+  Map<String, dynamic> modifiedFields = {};
+
+  if (imageUrlController.isNotEmpty) {
+    modifiedFields['imageUrl'] = imageUrlController;
+  }
+
+  return modifiedFields;
+}
+
+Future<void> updateUser() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await dotenv.load(fileName: ".env");
+  String? apiUrl = dotenv.env['API_URL'];
+
+  String token = prefs.getString('token')!;
+
+  final userData = JwtDecoder.decode(token);
+  String userId = (userData['sub'] ?? '');
+
+  String url = '$apiUrl/users/update/data/$userId';
+
+  try {
+    final modifiedFields = getModifiedFields();
+    final response = await http.patch(
+      Uri.parse(url),
+      body: jsonEncode(modifiedFields),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+        print('Url atualizada com sucesso');
+    } else {
+      print('Usuario não pode ser atualizado');
+    }
+  } catch (e) {
+    print(e);
+  }
+}
+
 
 
 @override
 Widget build(BuildContext context) {
   return Column(
-    children: [
-       Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-     Padding(
-  padding: EdgeInsets.only(top: 30.0, left: 40.0),
-  child: Column(
-    children: [
-      GestureDetector(
-        onTap: () {
-          selecionarImagem();
-        },
-        child: Icon(Icons.person_outline_rounded, size: 50),
-      ),
-    ],
-  ),
-),
-
-
+  children: [
+    Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Padding(
+          padding: EdgeInsets.only(top: 30.0, left: 40.0),
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  selecionarImagem(userId, userName);
+                },
+                  child: imageUrlController.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(30.0),
+                        child: Image.network(
+                          imageUrlController,
+                          fit: BoxFit.cover,
+                          width: 60,
+                          height: 60,
+                        ),
+                      )
+                    : Icon(Icons.person_outline_rounded, size: 50),
+              ),
+            ],
+          ),
+        ),
           const SizedBox(width: 10),
           Expanded(
             child: Padding(

@@ -153,6 +153,11 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
             user.setPeso(newWeight);
         }
 
+        String newImageUrl = formUpdate.getImageUrl();
+        if (newImageUrl != null) {
+            user.setImageUrl(newImageUrl);
+        }
+
         return repository.save(user);
     }
 

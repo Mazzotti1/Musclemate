@@ -52,6 +52,7 @@ public class User {
 
     private String recoveryCode;
 
+    private String imageUrl;
     public String getRecoveryCode() {
         return recoveryCode;
     }
@@ -59,6 +60,7 @@ public class User {
         this.token = token;
     }
     private boolean admin;
+
 
     public void setRecoveryCode(String recoveryCode) {
         this.recoveryCode = recoveryCode;

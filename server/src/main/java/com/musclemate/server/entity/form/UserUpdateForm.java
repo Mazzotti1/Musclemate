@@ -11,7 +11,7 @@ public class UserUpdateForm {
     private String genero;
     private String peso;
     private String nome;
-
+    private String imageUrl;
     private LocalDate dataDeNascimento;
 
     public String getEmail() {
@@ -44,5 +44,8 @@ public class UserUpdateForm {
 
     public String getNome() {
         return nome;
+    }
+    public String getImageUrl() {
+        return imageUrl;
     }
 }
