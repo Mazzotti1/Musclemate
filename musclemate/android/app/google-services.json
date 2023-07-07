@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "510248772086",
+    "project_id": "musclemate-386814",
+    "storage_bucket": "musclemate-386814.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:510248772086:android:410f7f7f963159b94327d7",
+        "android_client_info": {
+          "package_name": "com.example.musclemate"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "510248772086-9solh1ls7bb9ngcqjct6ra2khnhjlm8n.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDFpZLJgpb273VFRTpwhjnCb49-22OaOnU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "510248772086-9solh1ls7bb9ngcqjct6ra2khnhjlm8n.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "510248772086-9q8k11dnkaumh47qobc4pl8h6kcvsjt9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "PRODUCT_BUNDLE_IDENTIFIER"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -144,7 +144,7 @@ int currentGraphIndex = 1;
 
 List<String> explanations = [
   'O gráfico é primeiramente baseado em peso (KGs) por dias, porém no momento que 6 dias são registrados ele começa a comparar media de peso dos 6 dias entre as semanas',
-  'O gráfico é a duração dos seus treinos(Minutos) baseados em cada dia, no momento que 6 dias são registrados ele começa a comparar a media de minutos dos 6 dias entre as semanas ',
+  'O gráfico é a duração(Minutos) dos seus treinos baseados em cada dia, no momento que 6 dias são registrados ele começa a comparar a media de minutos dos 6 dias entre as semanas ',
 ];
 
 

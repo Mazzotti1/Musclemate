@@ -1,6 +1,7 @@
 
 
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -15,6 +16,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../pages/perfil/perfil_statistic_page.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+
 
 class Perfil extends StatefulWidget {
   const Perfil({Key? key}) : super(key: key);
@@ -65,6 +68,16 @@ class _PerfilState extends State<Perfil>{
     fetchUserData();
   }
 
+Future<void> selecionarImagem() async {
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+  if (pickedFile != null) {
+      print(pickedFile);
+  }
+}
+
+
 
  Future<void> fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -110,14 +123,21 @@ Widget build(BuildContext context) {
        Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const Padding(
-            padding: EdgeInsets.only(top:30.0, left: 40.0),
-            child: Column(
-              children: [
-                Icon(Icons.person_outline_rounded, size: 50),
-              ],
-            ),
-          ),
+     Padding(
+  padding: EdgeInsets.only(top: 30.0, left: 40.0),
+  child: Column(
+    children: [
+      GestureDetector(
+        onTap: () {
+          selecionarImagem();
+        },
+        child: Icon(Icons.person_outline_rounded, size: 50),
+      ),
+    ],
+  ),
+),
+
+
           const SizedBox(width: 10),
           Expanded(
             child: Padding(

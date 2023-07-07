@@ -36,7 +36,7 @@ class _WeightProgressChartState extends State<WeightProgressChart> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
 
-          return Center(child: CircularProgressIndicator());
+          return Center(child: LinearProgressIndicator());
         } else if (snapshot.hasError) {
 
           return Center(child: Text('Erro ao carregar os dados.'));
