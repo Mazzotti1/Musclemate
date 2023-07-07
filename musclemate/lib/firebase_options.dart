@@ -45,7 +45,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions web = FirebaseOptions(
     apiKey: 'AIzaSyCAvUEQPevF-69vR9Yi1WdDqButkuV-pgg',
-    appId: '1:510248772086:web:50d3775fc264755c4327d7',
+    appId: '1:510248772086:web:a08dbe03ec3e07944327d7',
     messagingSenderId: '510248772086',
     projectId: 'musclemate-386814',
     authDomain: 'musclemate-386814.firebaseapp.com',
@@ -54,7 +54,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDFpZLJgpb273VFRTpwhjnCb49-22OaOnU',
-    appId: '1:510248772086:android:410f7f7f963159b94327d7',
+    appId: '1:510248772086:android:2e1a6007b53eb1ff4327d7',
     messagingSenderId: '510248772086',
     projectId: 'musclemate-386814',
     storageBucket: 'musclemate-386814.appspot.com',
@@ -62,7 +62,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyBzwrbkSshRsUB4IWOpQ0O8m49uxzR35Qc',
-    appId: '1:510248772086:ios:cb3fb4c74f0d5aec4327d7',
+    appId: '1:510248772086:ios:ca9ce541447931dc4327d7',
     messagingSenderId: '510248772086',
     projectId: 'musclemate-386814',
     storageBucket: 'musclemate-386814.appspot.com',
@@ -73,7 +73,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyBzwrbkSshRsUB4IWOpQ0O8m49uxzR35Qc',
-    appId: '1:510248772086:ios:cb3fb4c74f0d5aec4327d7',
+    appId: '1:510248772086:ios:ca9ce541447931dc4327d7',
     messagingSenderId: '510248772086',
     projectId: 'musclemate-386814',
     storageBucket: 'musclemate-386814.appspot.com',
