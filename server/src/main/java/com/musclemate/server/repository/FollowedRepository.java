@@ -1,30 +1,28 @@
 package com.musclemate.server.repository;
 
 import com.musclemate.server.entity.Followers;
+
 import com.musclemate.server.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
+
 
 @Repository
-public interface UserRepository extends JpaRepository<User, Long> {
+public interface FollowedRepository extends JpaRepository<Followers, Long> {
+
+    Followers findByFollowerAndFollowed(User follower, User followed);
+
+    @Query("SELECT f.follower FROM Followers f WHERE f.followed = :user")
+    List<User> findFollowerUsersByFollowed(@Param("user") User user);
 
 
-    List<User> findByDataDeNascimento(LocalDate dataDeNascimento);
-    User findByEmail(String email);
-
-     User findByNome(String nome);
-
-
-    List<User> findByNomeContainingIgnoreCase(String nome);
-
-
-
+    void delete(Followers followers);
 }
+
+
 
 

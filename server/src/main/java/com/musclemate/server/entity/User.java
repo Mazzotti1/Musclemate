@@ -5,10 +5,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.security.core.GrantedAuthority;
+
 
 import java.time.LocalDate;
-import java.util.Collection;
+import java.util.List;
 
 
 @Data
@@ -53,6 +53,7 @@ public class User {
     private String recoveryCode;
 
     private String imageUrl;
+
     public String getRecoveryCode() {
         return recoveryCode;
     }
@@ -60,8 +61,6 @@ public class User {
         this.token = token;
     }
     private boolean admin;
-
-
     public void setRecoveryCode(String recoveryCode) {
         this.recoveryCode = recoveryCode;
     }

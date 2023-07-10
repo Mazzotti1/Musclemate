@@ -1,8 +1,10 @@
 package com.musclemate.server.Controller;
 
+import com.musclemate.server.entity.Followers;
 import com.musclemate.server.entity.User;
 import com.musclemate.server.entity.form.UserForm;
 import com.musclemate.server.entity.form.UserUpdateForm;
+import com.musclemate.server.service.impl.FollowerServiceImpl;
 import com.musclemate.server.service.impl.UserServiceImpl;
 
 
@@ -24,6 +26,8 @@ import java.util.List;
 public class UserController {
     @Autowired
     private UserServiceImpl service;
+    @Autowired
+    private FollowerServiceImpl followService;
     @GetMapping
     public List<User> getAll(@RequestParam(value = "nome", required = false) String nome) {
         return service.getAll(nome);
@@ -90,6 +94,24 @@ public class UserController {
         }
     }
 
+    @PostMapping("/follow")
+    public void seguirUsuario(@RequestBody Followers followers) {
+        followService.seguirUsuario(followers.getFollower(), followers.getFollowed());
+    }
+
+    @DeleteMapping("/unfollow")
+    public void deixarDeSeguirUsuario(@RequestBody Followers followers) {
+        User follower = followers.getFollower();
+        User followed = followers.getFollowed();
+
+        followService.deixarDeSeguirUsuario(follower, followed);
+    }
+
+    @GetMapping("/followers/{id}")
+    public List<User> getSeguidores(@PathVariable Long id) {
+        User user = service.get(id);
+        return followService.getSeguidores(user);
+    }
 
 
 

@@ -12,6 +12,8 @@ public class UserUpdateForm {
     private String peso;
     private String nome;
     private String imageUrl;
+    private String followers;
+    private String following;
     private LocalDate dataDeNascimento;
 
     public String getEmail() {
@@ -48,4 +50,5 @@ public class UserUpdateForm {
     public String getImageUrl() {
         return imageUrl;
     }
+
 }
