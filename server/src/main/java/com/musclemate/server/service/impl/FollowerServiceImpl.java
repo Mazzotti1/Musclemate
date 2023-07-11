@@ -42,4 +42,18 @@ public class FollowerServiceImpl {
         return followersWithIdAndName;
     }
 
+    public List<User> getSeguindo(User user) {
+        List<User> followed = repository.findFollowedUsers(user);
+        List<User> followedsWithIdAndName = new ArrayList<>();
+
+        for (User followedUser : followed) {
+            User followedWithIdAndName = new User();
+            followedWithIdAndName.setId(followedUser.getId());
+            followedWithIdAndName.setNome(followedUser.getNome());
+            followedsWithIdAndName.add(followedWithIdAndName);
+        }
+
+        return followedsWithIdAndName;
+    }
+
 }

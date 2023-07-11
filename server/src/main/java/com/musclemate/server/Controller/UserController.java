@@ -113,6 +113,11 @@ public class UserController {
         return followService.getSeguidores(user);
     }
 
+    @GetMapping("/followed/{id}")
+    public List<User> getSeguindo(@PathVariable Long id) {
+        User user = service.get(id);
+        return followService.getSeguindo(user);
+    }
 
 
 }
