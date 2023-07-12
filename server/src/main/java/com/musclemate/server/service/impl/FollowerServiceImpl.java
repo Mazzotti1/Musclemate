@@ -50,6 +50,7 @@ public class FollowerServiceImpl {
             User followedWithIdAndName = new User();
             followedWithIdAndName.setId(followedUser.getId());
             followedWithIdAndName.setNome(followedUser.getNome());
+            followedWithIdAndName.setImageUrl(followedUser.getImageUrl());
             followedsWithIdAndName.add(followedWithIdAndName);
         }
 

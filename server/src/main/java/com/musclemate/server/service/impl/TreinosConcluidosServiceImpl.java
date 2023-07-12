@@ -7,6 +7,7 @@ import com.musclemate.server.repository.TreinosConcluidosRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,4 +34,18 @@ public class TreinosConcluidosServiceImpl {
 
         repository.save(treino);
     }
+
+    public List<TreinosConcluidos> buscarAtividadesDosSeguidos(List<User> usuariosSeguidos) {
+        List<TreinosConcluidos> atividades = new ArrayList<>();
+
+        for (User usuario : usuariosSeguidos) {
+            List<TreinosConcluidos> atividadesUsuario = repository.findAllByUser(usuario);
+            atividades.addAll(atividadesUsuario);
+        }
+
+        return atividades;
+    }
+
+
+
 }

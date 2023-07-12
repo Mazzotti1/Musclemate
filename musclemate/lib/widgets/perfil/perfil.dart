@@ -71,6 +71,8 @@ class _PerfilState extends State<Perfil>{
   void initState() {
     super.initState();
     fetchUserData();
+    findFollowing();
+    findFollowers();
   }
 
  Future<void> fetchUserData() async {
@@ -185,7 +187,79 @@ Future<void> updateUser() async {
   }
 }
 
+int seguindo = 0;
+Future<void> findFollowing() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    await dotenv.load(fileName: ".env");
 
+    String? apiUrl = dotenv.env['API_URL'];
+
+    final userData = JwtDecoder.decode(token);
+    String userId = (userData['sub']);
+    String url = '$apiUrl/users/followed/$userId';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      int numberOfIds = data.length;
+      setState(() {
+        seguindo = numberOfIds;
+      });
+
+    } else {
+      print('${response.statusCode}');
+    }
+    } catch (e) {
+      print('$e');
+    }
+  }
+
+  int seguidores = 0;
+Future<void> findFollowers() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    await dotenv.load(fileName: ".env");
+
+    String? apiUrl = dotenv.env['API_URL'];
+
+    final userData = JwtDecoder.decode(token);
+    String userId = (userData['sub']);
+    String url = '$apiUrl/users/followers/$userId';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      int numberOfIds = data.length;
+      setState(() {
+        seguidores = numberOfIds;
+      });
+
+    } else {
+      print('${response.statusCode}');
+    }
+    } catch (e) {
+      print('$e');
+    }
+  }
 
 @override
 Widget build(BuildContext context) {
@@ -249,11 +323,15 @@ Widget build(BuildContext context) {
           children: [
             TextButton(
               onPressed: _navigateToFollowing,
-              child: const Column(
+              child:  Column(
                 children: [
                   Text('Seguindo', style: TextStyle(color: Color.fromRGBO(189, 172, 103, 1))),
                   SizedBox(width: 5),
-                  Text('4', style: TextStyle(color: Colors.black)),
+                  Text(
+                seguindo.toString(),
+                style: TextStyle(color: Colors.black),
+                  ),
+
                 ],
               ),
             ),
@@ -261,11 +339,14 @@ Widget build(BuildContext context) {
             const SizedBox(width: 10),
             TextButton(
               onPressed:_navigateToFollowers,
-              child: const Column(
+              child:  Column(
                 children: [
                   Text('Seguidores', style: TextStyle(color: Color.fromRGBO(189, 172, 103, 1))),
                   SizedBox(width: 5),
-                  Text('6', style: TextStyle(color: Colors.black)),
+                   Text(
+                seguidores.toString(),
+                style: TextStyle(color: Colors.black),
+                  ),
                 ],
               ),
             ),

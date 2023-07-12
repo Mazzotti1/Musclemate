@@ -15,4 +15,6 @@ public interface TreinosConcluidosRepository extends JpaRepository<TreinosConclu
     List<TreinosConcluidos> findAllTreinosById(String usuario_id);
 
     List<TreinosConcluidos> findAllByUser(User user);
+
+
 }
