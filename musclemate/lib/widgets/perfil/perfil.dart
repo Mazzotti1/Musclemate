@@ -67,12 +67,17 @@ class _PerfilState extends State<Perfil>{
     String userName = '';
     String userId = '';
 
+    List<Map<String, dynamic>> trainingList = [];
+    String lastTrainingDate = '';
+
+
      @override
   void initState() {
     super.initState();
     fetchUserData();
     findFollowing();
     findFollowers();
+    findLastDate();
   }
 
  Future<void> fetchUserData() async {
@@ -261,6 +266,53 @@ Future<void> findFollowers() async {
     }
   }
 
+   Future<void> findLastDate() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userTokenData = JwtDecoder.decode(token);
+  String userId = (userTokenData['sub']);
+  String url = '$apiUrl/treinos/$userId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+
+       for (var trainingData in responseData) {
+    String dataDoTreino = trainingData['dataDoTreino'];
+    // Adicione as variáveis à lista
+    trainingList.add({
+      'dataDoTreino': dataDoTreino,
+    });
+     lastTrainingDate = dataDoTreino;
+       }
+
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
 @override
 Widget build(BuildContext context) {
   return Column(
@@ -372,7 +424,7 @@ Widget build(BuildContext context) {
         onTap: _navigateToActivitys,
         child: Column(
           children: [
-            const Padding(
+             Padding(
               padding: EdgeInsets.only(top:20.0, left: 20),
               child: Row(
                 children: [
@@ -388,7 +440,7 @@ Widget build(BuildContext context) {
                       Text('Atividades'),
                       SizedBox(height: 5),
                       Text(
-                        '10 de março de 2023',
+                        lastTrainingDate,
                         style: TextStyle(color: Colors.black45),
                       ),
                     ],

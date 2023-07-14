@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:musclemate/pages/home_config/configuration_page.dart';
 import 'package:musclemate/pages/notificacoes_page.dart';
-import 'package:musclemate/widgets/home/posts.dart';
+
 
 
 
@@ -48,9 +48,7 @@ class _FeedPageState extends State<FeedPage>{
 
   ],
 ),
-
-  body: const Posts(),
-
+  body: Text('Oi')
   );
 
   }

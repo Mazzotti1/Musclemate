@@ -1,50 +1,401 @@
 
 import 'package:flutter/material.dart';
+import 'dart:convert';
 
-class Posts extends StatelessWidget {
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+
+class Posts extends StatefulWidget {
   const Posts({Key? key}) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-  padding: const EdgeInsets.all(0.0),
-  child: Column(
+  _PostsState createState()=> _PostsState();
+}
+class _PostsState extends State<Posts>{
+
+ @override
+  void initState() {
+    super.initState();
+    fetchUserData();
+    findTraining();
+
+  }
+
+    String userName = '';
+    String userId = '';
+    String imageUrlController = '';
+
+List<Map<String, dynamic>> trainingList = [];
+String searchText = '';
+
+
+Future<void> fetchUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    await dotenv.load(fileName: ".env");
+
+    String? apiUrl = dotenv.env['API_URL'];
+
+    final userData = JwtDecoder.decode(token);
+    String userId = (userData['sub']);
+    String url = '$apiUrl/users/$userId';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+     final userData = jsonDecode(response.body) as Map<String, dynamic>;
+
+      setState(() {
+        userName  =  userData['nome'] ?? '';
+        userId =  userData['sub'] ?? '';
+         imageUrlController = userData['imageUrl'] ?? '';
+      });
+
+      } else {
+        print('${response.statusCode}');
+      }
+    } catch (e) {
+      print('$e');
+    }
+  }
+
+  Future<void> findTraining() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userTokenData = JwtDecoder.decode(token);
+  String userId = (userTokenData['sub']);
+  String url = '$apiUrl/treinos/$userId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+
+       for (var trainingData in responseData) {
+    int id = trainingData['id'];
+    String tipoDeTreino = trainingData['tipoDeTreino'];
+    int totalDeRepeticoes = trainingData['totalDeRepeticoes'];
+    int mediaDePesoUtilizado = trainingData['mediaDePesoUtilizado'];
+    String dataDoTreino = trainingData['dataDoTreino'];
+    String tempo = trainingData['tempo'];
+    int totalDeSeries = trainingData['totalDeSeries'];
+
+    // Adicione as variáveis à lista
+    trainingList.add({
+      'id': id,
+      'tipoDeTreino': tipoDeTreino,
+      'totalDeRepeticoes': totalDeRepeticoes,
+      'mediaDePesoUtilizado': mediaDePesoUtilizado,
+      'dataDoTreino': dataDoTreino,
+      'tempo': tempo,
+      'totalDeSeries': totalDeSeries,
+    });
+       }
+
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
+@override
+Widget build(BuildContext context) {
+  return Column(
     children: [
-      const Padding(
-        padding: EdgeInsets.only(top:20.0, left: 20),
+      Padding(
+        padding: const EdgeInsets.only(top: 10.0, left: 20),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Column(
-              children: [
-                Icon(Icons.person_outline_rounded, size: 50),
-              ],
-            ),
-            SizedBox(width: 20),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Container(
+                width: 350,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color.fromRGBO(242, 242, 242, 1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.search, color: Colors.black45),
+                      SizedBox(width: 5),
+                      Expanded(
+                        child: TextField(
+                          onChanged: (value) {
+                          setState(() {
+                            searchText = value;
+                          });
+                        },
+                          decoration: InputDecoration(
+                            hintText: 'Pesquisar atividade pela data',
+                            hintStyle: TextStyle(color: Colors.black45),
+                            border: InputBorder.none,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+      Expanded(
+        child: ListView.builder(
+    itemCount: trainingList.length,
+    itemBuilder: (context, index) {
+        var trainingData = trainingList.reversed.toList()[index];
+
+
+      String tipoDeTreino = trainingData['tipoDeTreino'];
+      int totalDeRepeticoes = trainingData['totalDeRepeticoes'];
+      int mediaDePesoUtilizado = trainingData['mediaDePesoUtilizado'];
+      String dataDoTreino = trainingData['dataDoTreino'];
+      DateTime dateTime = DateFormat('dd/MM/yyyy').parse(dataDoTreino);
+      String dataFormatada = DateFormat("dd 'de' MMMM 'de' yyyy", 'pt_BR').format(dateTime);
+
+      String tempo = trainingData['tempo'];
+      int totalDeSeries = trainingData['totalDeSeries'];
+
+      if (searchText.isNotEmpty &&
+    !dataDoTreino.toLowerCase().contains(searchText.toLowerCase()) &&
+    !dataFormatada.toLowerCase().contains(searchText.toLowerCase())) {
+  // Retorna um item vazio se o texto de pesquisa não estiver contido na data do treino nem na data formatada
+  return SizedBox.shrink();
+}
+
+
+      return Padding(
+        padding: const EdgeInsets.all(0.0),
+        child: Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.only(top: 20.0, left: 20),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  Padding(
-                    padding: EdgeInsets.only(top:8.0),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+                  Column(
+                    children: [
+                      GestureDetector(
+                        child: imageUrlController.isNotEmpty
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(30.0),
+                                child: Image.network(
+                                  imageUrlController,
+                                  fit: BoxFit.cover,
+                                  width: 60,
+                                  height: 60,
+                                ),
+                              )
+                            : Icon(Icons.person_outline_rounded, size: 50),
+                      ),
+                    ],
+                  ),
+                  SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'Marcos da Silva',
-                          style: TextStyle(fontSize: 15),
+                        Padding(
+                          padding: EdgeInsets.only(top: 8.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                userName,
+                                style: TextStyle(fontSize: 15),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Padding(
+                          padding: EdgeInsets.only(top: 2.5),
+                          child: Row(
+                            children: [
+                              Text(
+                                dataFormatada,
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.only(top:2.5),
-                    child: Row(
+                ],
+              ),
+            ),
+            const SizedBox(height: 10,),
+             Padding(
+              padding: EdgeInsets.only(left: 9),
+              child: Padding(
+                padding: EdgeInsets.only(left: 20),
+                child: Row(
+                  children: [
+                    Text('Hoje eu treinei $tipoDeTreino!',
+                        style: TextStyle(fontSize: 16)),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 15,),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: Row(
+                  children: [
+                     Column(
                       children: [
-                        Text(
-                          '18 de abril de 2023 ás 10:38',
-                          style: TextStyle(fontSize: 12),
+                        Text('Duração',
+                            style: TextStyle(fontSize: 13)),
+                        Text(tempo,
+                            style: TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 10.0, left: 10.0),
+                      child: Container(
+                        height: 35,
+                        width: 1,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const Column(
+                      children: [
+                        Text('Qtd. de exercícios',
+                            style: TextStyle(fontSize: 13)),
+                        Text('12 minutos',
+                            style: TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 10.0, left: 10.0),
+                      child: Container(
+                        height: 35,
+                        width: 1,
+                        color: Colors.black,
+                      ),
+                    ),
+                     Column(
+                      children: [
+                        Text('Treino',
+                            style: TextStyle(fontSize: 13)),
+                        Text(tipoDeTreino,
+                            style: TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 15,),
+            Padding(
+              padding: const EdgeInsets.only(left: 20),
+              child: Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: Row(
+                  children: [
+                     Column(
+                      children: [
+                        Text('Séries',
+                            style: TextStyle(fontSize: 13)),
+                        Text(totalDeSeries.toString(),
+                            style: TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 10.0, left: 10.0),
+                      child: Container(
+                        height: 35,
+                        width: 1,
+                        color: Colors.black,
+                      ),
+                    ),
+                     Column(
+                      children: [
+                        Text('Média de peso utilizado',
+                            style: TextStyle(fontSize: 13)),
+                        Text('$mediaDePesoUtilizado kg',
+                            style: TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(right: 10.0, left: 10.0),
+                      child: Container(
+                        height: 35,
+                        width: 1,
+                        color: Colors.black,
+                      ),
+                    ),
+                     Column(
+                      children: [
+                        Text('Repetições',
+                            style: TextStyle(fontSize: 13)),
+                        Text(totalDeRepeticoes.toString(),
+                            style: TextStyle(fontSize: 13)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 15,),
+            Padding(
+              padding: const EdgeInsets.all(0.0),
+              child: Column(
+                children: [
+                  Container(
+                    width: double.infinity,
+                    height: 60,
+                    color: const Color.fromRGBO(240, 240, 240, 1),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        Icon(Icons.favorite),
+                        VerticalDivider(
+                          color: Colors.grey,
+                          thickness: 1,
+                          width: 20,
+                          indent: 15,
+                          endIndent: 10,
                         ),
+                        Icon(Icons.mode_comment),
                       ],
                     ),
                   ),
@@ -53,200 +404,13 @@ class Posts extends StatelessWidget {
             ),
           ],
         ),
-      ),
-      const SizedBox(height: 10,),
-      const Padding(
-        padding: EdgeInsets.only(left:9),
-        child: Padding(
-          padding: EdgeInsets.only(left: 20),
-          child: Row(
-            children: [
-              Text('Hoje eu treinei peito!',
-              style: TextStyle(fontSize: 16)
-              ),
-            ],
-          ),
-        ),
-      ),
-         const SizedBox(height: 15,),
-      Padding(
-        padding: const EdgeInsets.only(left:20),
-        child: Padding(
-          padding: const EdgeInsets.only( left: 20),
-          child: Row(
-            children: [
-               const Column(
-              children: [
-                Text('Duração',
-                style: TextStyle(fontSize: 13)
-                ),
-                 Text('1h25',
-                style: TextStyle(fontSize: 13)
-                ),
-              ],
-            ),
-                Padding(
-                  padding: const EdgeInsets.only(right:10.0, left: 10.0),
-                  child: Container(
-          height: 35,
-          width: 1,
-          color: Colors.black,
-      ),
-                ),
-               const Column(
-              children: [
-                Text('Média p/ exercício',
-                style: TextStyle(fontSize: 13)
-                ),
-                 Text('12 minutos',
-                style: TextStyle(fontSize: 13)
-                ),
+      );
+    },
+        )
+      )
+    ]
 
-              ],
-            ),
-                Padding(
-                  padding: const EdgeInsets.only(right:10.0, left: 10.0),
-                  child: Container(
-          height: 35,
-          width: 1,
-          color: Colors.black,
-      ),
-                ),
-               const Column(
-              children: [
-                Text('Treino',
-                style: TextStyle(fontSize: 13)
-                ),
-                 Text('Peito',
-                style: TextStyle(fontSize: 13)
-                ),
-              ],
-            ),
-          ],
-          ),
-        ),
-      ),
-     const SizedBox(height: 15,),
-      Padding(
-        padding: const EdgeInsets.only(left:9),
-        child: Row(
-         children: [
-          Padding(
-           padding: const EdgeInsets.only( left: 20),
-            child: Column(
-              children: [
-                Container(
-                  width: 160,
-                  height: 30,
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.black,
-                      width: 1,
-                    ),
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                  child: const Padding(
-                    padding: EdgeInsets.only(left:6.0),
-                    child: Align(
-                    alignment: Alignment.centerLeft,
-                      child:
-                     Text('Supino inclinado com halter',
-                     style: TextStyle(fontSize: 11),
-                    ),
-
-                    ),
-                  ),
-                ),
-
-              ],
-         ),
-          ),
-            Column(
-  children: [
-          const Padding(
-            padding: EdgeInsets.only(left:0.0),
-            child: Text('Qntd. séries', style: TextStyle(fontSize: 12)),
-          ),
-          const SizedBox(height: 5),
-          const Padding(
-            padding: EdgeInsets.only(left:0.0),
-            child: Text('4', style: TextStyle(fontSize: 11)),
-          ),
-          const SizedBox(height: 2),
-         // ignore: avoid_unnecessary_containers
-    Padding(
-      padding: const EdgeInsets.only(left:20.0,),
-      child: Table(
-  border: TableBorder.all(
-    color: Colors.black,
-    width: 1,
-    style: BorderStyle.solid,
-  ),
-  defaultColumnWidth: const FixedColumnWidth(65),
-  children: const [
-      TableRow(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            child: Text('2º Série', style: TextStyle(fontSize: 12)),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            child: Text('36kg', style: TextStyle(fontSize: 12)),
-          ),
-        ],
-      ),
-      TableRow(
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            child: Text('1º Série', style: TextStyle(fontSize: 12)),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 4, horizontal: 4),
-            child: Text('32kg', style: TextStyle(fontSize: 12)),
-          ),
-        ],
-      ),
-  ],
-),
-    ),
-
-],
-)
-         ],
-        ),
-      ),
-    const SizedBox(height: 15,),
-Padding(
-  padding: const EdgeInsets.all(0.0),
-  child: Column(
-    children: [
-      Container(
-        width: double.infinity,
-        height: 60,
-        color: const Color.fromRGBO(240, 240, 240, 1),
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            Icon(Icons.favorite),
-             VerticalDivider(
-              color: Colors.grey,
-              thickness: 1,
-              width: 20,
-              indent: 15,
-              endIndent: 10,
-            ),
-            Icon(Icons.mode_comment),
-          ],
-        ),
-      ),
-    ],
-  ),
-),
-    ],
-  ),
-);
+  );
+}
 
   }
-}

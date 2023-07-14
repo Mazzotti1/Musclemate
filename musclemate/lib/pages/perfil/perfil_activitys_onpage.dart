@@ -1,9 +1,9 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:musclemate/widgets/perfil/perfil_activitys.dart';
 
 
+import '../../widgets/home/posts.dart';
 
 
 
@@ -23,7 +23,7 @@ Widget build(BuildContext context) {
       title: const Text('Atividades'),
 
     ),
-    body: const PerfilActivitys(),
+     body: const Posts(),
   );
 }
 }

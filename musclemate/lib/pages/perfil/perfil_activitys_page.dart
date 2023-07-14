@@ -1,7 +1,9 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:musclemate/widgets/perfil/perfil_activitys.dart';
+
+
+import '../../widgets/home/posts.dart';
 
 
 
@@ -20,7 +22,7 @@ class _PerfilActivitysPageState extends State<PerfilActivitysPage>{
  @override
   Widget build(BuildContext context) {
     return const Scaffold(
-      body: PerfilActivitys(),
+       body: const Posts(),
     );
   }
 
