@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:musclemate/pages/home_config/configuration_page.dart';
 import 'package:musclemate/pages/notificacoes_page.dart';
 
-
-
-
+import 'package:musclemate/widgets/home/feed.dart';
 
 
 class FeedPage extends StatefulWidget {
@@ -48,7 +46,7 @@ class _FeedPageState extends State<FeedPage>{
 
   ],
 ),
-  body: Text('Oi')
+   body: const Feed(),
   );
 
   }

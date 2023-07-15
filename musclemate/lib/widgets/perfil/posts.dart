@@ -4,11 +4,13 @@ import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:musclemate/widgets/home/PlaceholderPost.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 class Posts extends StatefulWidget {
   const Posts({Key? key}) : super(key: key);
@@ -32,7 +34,7 @@ class _PostsState extends State<Posts>{
 
 List<Map<String, dynamic>> trainingList = [];
 String searchText = '';
-
+bool isLoading = true;
 
 Future<void> fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -103,6 +105,9 @@ Future<void> fetchUserData() async {
     String tempo = trainingData['tempo'];
     int totalDeSeries = trainingData['totalDeSeries'];
 
+        setState(() {
+        isLoading = false;
+      });
     // Adicione as variáveis à lista
     trainingList.add({
       'id': id,
@@ -132,6 +137,7 @@ Future<void> fetchUserData() async {
 
 @override
 Widget build(BuildContext context) {
+  initializeDateFormatting();
   return Column(
     children: [
       Padding(
@@ -174,8 +180,57 @@ Widget build(BuildContext context) {
           ],
         ),
       ),
-      Expanded(
-        child: ListView.builder(
+       Expanded(
+        child: isLoading  &&  trainingList.isEmpty
+          ? const Center(
+  child: Column(
+
+    children: [
+      SizedBox(height: 150,),
+      Icon(
+        Icons.warning,
+        size: 48,
+        color: Colors.yellow,
+      ),
+      SizedBox(height: 10),
+      Text(
+        'Ops...',
+        style: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      SizedBox(height: 10),
+      Padding(
+        padding: EdgeInsets.only(left: 15.0, right: 15.0),
+        child: Text(
+          'Você ainda não realizou nenhum treino! Aqui você pode ver suas atividades!',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    ],
+  ),
+)
+
+            : isLoading
+                ?
+                 Center(
+              child: PlaceholderPost(),
+            )
+              : FutureBuilder<void>(
+                  future: Future.delayed(Duration(milliseconds: 500)),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+
+                      return Center(
+                        child: PlaceholderPost(),
+                      );
+                    } else {
+  return ListView.builder(
     itemCount: trainingList.length,
     itemBuilder: (context, index) {
         var trainingData = trainingList.reversed.toList()[index];
@@ -295,22 +350,7 @@ Widget build(BuildContext context) {
                         color: Colors.black,
                       ),
                     ),
-                    const Column(
-                      children: [
-                        Text('Qtd. de exercícios',
-                            style: TextStyle(fontSize: 13)),
-                        Text('12 minutos',
-                            style: TextStyle(fontSize: 13)),
-                      ],
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(right: 10.0, left: 10.0),
-                      child: Container(
-                        height: 35,
-                        width: 1,
-                        color: Colors.black,
-                      ),
-                    ),
+
                      Column(
                       children: [
                         Text('Treino',
@@ -404,10 +444,15 @@ Widget build(BuildContext context) {
             ),
           ],
         ),
+
       );
     },
+      );
+                    }}
         )
+
       )
+
     ]
 
   );

@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 
 
-import '../../widgets/home/posts.dart';
+import '../../widgets/perfil/posts.dart';
 
 
 

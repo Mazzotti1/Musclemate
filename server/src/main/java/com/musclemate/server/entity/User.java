@@ -52,7 +52,7 @@ public class User {
 
     private String recoveryCode;
 
-    private String imageUrl;
+    private String imageUrl = "";
 
     public String getRecoveryCode() {
         return recoveryCode;
