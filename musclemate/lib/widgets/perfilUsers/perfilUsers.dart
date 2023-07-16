@@ -6,68 +6,59 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:musclemate/pages/perfil/followers/perfil_followers_page.dart';
-import 'package:musclemate/pages/perfil/followers/perfil_following_page.dart';
+
 import 'package:musclemate/pages/perfil/perfil_activitys_onpage.dart';
 
-import 'package:musclemate/pages/perfil/perfil_edit_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../pages/perfil/perfil_statistic_page.dart';
-
 import 'package:http/http.dart' as http;
-import 'package:image_picker/image_picker.dart';
 
-import 'dart:io';
-import 'package:firebase_storage/firebase_storage.dart';
-
+import '../../pages/perfil_users/perfilUsers_activitys_page.dart';
+import '../../pages/perfil_users/perfilUsers_statistic_page.dart';
 
 
-class Perfil extends StatefulWidget {
-  const Perfil({Key? key}) : super(key: key);
+
+
+
+class PerfilUsers extends StatefulWidget {
+  const PerfilUsers({Key? key}) : super(key: key);
 
   @override
-  _PerfilState createState()=> _PerfilState();
+  _PerfilUsersState createState()=> _PerfilUsersState();
 }
-class _PerfilState extends State<Perfil>{
+class _PerfilUsersState extends State<PerfilUsers>{
 
  void _navigateToStatistics() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const PerfilStatisticPage()),
+      MaterialPageRoute(builder: (context) => const PerfilUsersStatisticPage()),
     );
   }
 
- void _navigateToEdit() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const PerfilEditPage()),
-    );
-  }
    void _navigateToActivitys() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const PerfilActivitysOnPage()),
+      MaterialPageRoute(builder: (context) => const PerfilUsersActivitysPage()),
     );
   }
 
     void _navigateToFollowers() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const PerfilFollowersPage()),
+      MaterialPageRoute(builder: (context) => const PerfilActivitysOnPage()),
     );
   }
       void _navigateToFollowing() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const PerfilFollowingPage()),
+      MaterialPageRoute(builder: (context) => const PerfilActivitysOnPage()),
     );
   }
 
     String userName = '';
     String userId = '';
+    String imageUrlController = '';
     String bio = '';
-
     List<Map<String, dynamic>> trainingList = [];
     String lastTrainingDate = '';
 
@@ -79,17 +70,18 @@ class _PerfilState extends State<Perfil>{
     findFollowing();
     findFollowers();
     findLastDate();
+    getFolloweds();
   }
+
 
  Future<void> fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString('token')!;
-    await dotenv.load(fileName: ".env");
 
+    await dotenv.load(fileName: ".env");
     String? apiUrl = dotenv.env['API_URL'];
 
-    final userData = JwtDecoder.decode(token);
-    String userId = (userData['sub']);
+    String? userId = prefs.getString('choosedPerfil');
     String url = '$apiUrl/users/$userId';
 
     try {
@@ -107,7 +99,7 @@ class _PerfilState extends State<Perfil>{
       setState(() {
         userName  =  userData['nome'] ?? '';
         userId =  userData['sub'] ?? '';
-         imageUrlController = userData['imageUrl'] ?? '';
+        imageUrlController = userData['imageUrl'] ?? '';
         bio = userData['bio'] ?? '';
       });
 
@@ -119,80 +111,6 @@ class _PerfilState extends State<Perfil>{
     }
   }
 
-String imageUrlController = '';
-
-Future<void> selecionarImagem(String userId, String userName) async {
-  final picker = ImagePicker();
-  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-  if (pickedFile != null) {
-    File imageFile = File(pickedFile.path);
-
-   final storage = FirebaseStorage.instance;
-final storageRef = storage.ref().child('imagePerfil/$userName/$userId/${DateTime.now().millisecondsSinceEpoch}_${pickedFile.path.split('/').last}');
-
-    final uploadTask = storageRef.putFile(imageFile);
-
-    uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
-      print('Upload em andamento: ${snapshot.bytesTransferred}/${snapshot.totalBytes}');
-    }, onError: (Object e) {
-      print('Erro durante o upload: $e');
-    });
-
-    final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
-
-    final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
-    imageUrlController = downloadUrl;
-      setState(() {
-    imageUrlController = downloadUrl;
-  });
-    print('Imagem salva com sucesso: $downloadUrl');
-    await updateUser();
-  }
-}
-
-Map<String, dynamic> getModifiedFields() {
-  Map<String, dynamic> modifiedFields = {};
-
-  if (imageUrlController.isNotEmpty) {
-    modifiedFields['imageUrl'] = imageUrlController;
-  }
-
-  return modifiedFields;
-}
-
-Future<void> updateUser() async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await dotenv.load(fileName: ".env");
-  String? apiUrl = dotenv.env['API_URL'];
-
-  String token = prefs.getString('token')!;
-
-  final userData = JwtDecoder.decode(token);
-  String userId = (userData['sub'] ?? '');
-
-  String url = '$apiUrl/users/update/data/$userId';
-
-  try {
-    final modifiedFields = getModifiedFields();
-    final response = await http.patch(
-      Uri.parse(url),
-      body: jsonEncode(modifiedFields),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    if (response.statusCode == 200) {
-        print('Url atualizada com sucesso');
-    } else {
-      print('Usuario não pode ser atualizado');
-    }
-  } catch (e) {
-    print(e);
-  }
-}
 
 int seguindo = 0;
 Future<void> findFollowing() async {
@@ -202,8 +120,7 @@ Future<void> findFollowing() async {
 
     String? apiUrl = dotenv.env['API_URL'];
 
-    final userData = JwtDecoder.decode(token);
-    String userId = (userData['sub']);
+    String? userId = prefs.getString('choosedPerfil');
     String url = '$apiUrl/users/followed/$userId';
 
     try {
@@ -219,6 +136,7 @@ Future<void> findFollowing() async {
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       int numberOfIds = data.length;
+      print(data);
       setState(() {
         seguindo = numberOfIds;
       });
@@ -239,8 +157,7 @@ Future<void> findFollowers() async {
 
     String? apiUrl = dotenv.env['API_URL'];
 
-    final userData = JwtDecoder.decode(token);
-    String userId = (userData['sub']);
+    String? userId = prefs.getString('choosedPerfil');
     String url = '$apiUrl/users/followers/$userId';
 
     try {
@@ -275,8 +192,8 @@ Future<void> findFollowers() async {
   await dotenv.load(fileName: ".env");
 
   String? apiUrl = dotenv.env['API_URL'];
-  final userTokenData = JwtDecoder.decode(token);
-  String userId = (userTokenData['sub']);
+
+  String? userId = prefs.getString('choosedPerfil');
   String url = '$apiUrl/treinos/$userId';
 
   try {
@@ -315,6 +232,161 @@ Future<void> findFollowers() async {
   }
 }
 
+  Follow() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userData = JwtDecoder.decode(token);
+
+  String userId = (userData['sub']);
+  String? userPerfilId = prefs.getString('choosedPerfil');
+  String url = '$apiUrl/users/follow';
+
+Map<String, dynamic> bodyData = {
+  'follower': {'id': int.parse(userId)},
+  'followed': {'id': int.parse(userPerfilId!)},
+};
+
+Map<String, dynamic> jsonData = {
+  'follower': {'id': bodyData['follower']['id']},
+  'followed': {'id': bodyData['followed']['id']},
+};
+
+    String jsonString = jsonEncode(jsonData);
+  try {
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+       body: jsonString
+    );
+
+    if (response.statusCode == 200) {
+       setState(() {
+      nomesFolloweds.add(userName);
+    });
+
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
+Unfollow() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userData = JwtDecoder.decode(token);
+
+  String userId = (userData['sub']);
+  String? userPerfilId = prefs.getString('choosedPerfil');
+  String url = '$apiUrl/users/unfollow';
+
+Map<String, dynamic> bodyData = {
+  'follower': {'id': int.parse(userId)},
+  'followed': {'id': int.parse(userPerfilId!)},
+};
+
+Map<String, dynamic> jsonData = {
+  'follower': {'id': bodyData['follower']['id']},
+  'followed': {'id': bodyData['followed']['id']},
+};
+
+    String jsonString = jsonEncode(jsonData);
+  try {
+    final response = await http.delete(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+       body: jsonString
+    );
+
+    if (response.statusCode == 200) {
+       setState(() {
+      nomesFolloweds.remove(userName);
+    });
+
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
+List<String> nomesFolloweds = [];
+
+Future<void> getFolloweds() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    await dotenv.load(fileName: ".env");
+
+    String? apiUrl = dotenv.env['API_URL'];
+
+      final userData = JwtDecoder.decode(token);
+    String userId = (userData['sub']);
+
+    String url = '$apiUrl/users/followed/$userId';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      List<String> nomes = [];
+
+      for (var item in data) {
+        String nome = item['nome'];
+        nomes.add(nome);
+      }
+      print(nomes);
+       setState(() {
+        nomesFolloweds = nomes ;
+      });
+
+    } else {
+      print('${response.statusCode}');
+    }
+    } catch (e) {
+      print('$e');
+    }
+  }
+
+
 @override
 Widget build(BuildContext context) {
   return Column(
@@ -327,9 +399,7 @@ Widget build(BuildContext context) {
           child: Column(
             children: [
               GestureDetector(
-                onTap: () {
-                  selecionarImagem(userId, userName);
-                },
+
                   child: imageUrlController.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(30.0),
@@ -361,8 +431,11 @@ Widget build(BuildContext context) {
                           userName,
                           style: const TextStyle(fontSize: 18),
                         ),
+
                       ],
+
                     ),
+
                   ),
                   SizedBox(height: 3,),
                    Text(bio),
@@ -406,15 +479,28 @@ Widget build(BuildContext context) {
                 ],
               ),
             ),
-            const SizedBox(width: 60),
-            OutlinedButton.icon(
-              onPressed: _navigateToEdit,
-              icon: const Icon(Icons.edit, color: Color.fromRGBO(189, 172, 103, 1,), size: 18,),
-              label: const Text('Editar', style: TextStyle(color: Color.fromRGBO(189, 172, 103, 1))),
-              style: ButtonStyle(
-                minimumSize: MaterialStateProperty.all(const Size(30, 30)),
-              ),
+            const SizedBox(width: 40),
+           ElevatedButton(
+          onPressed: () {
+            if (nomesFolloweds.contains(userName)) {
+              Unfollow();
+            } else {
+              Follow();
+            }
+          },
+          style: ButtonStyle(
+            backgroundColor: MaterialStateProperty.all<Color>(
+                nomesFolloweds.contains(userName)
+                    ? Color.fromARGB(209, 240, 225, 91) // cor para unfollow
+                    : Colors.blue // cor para follow
             ),
+            foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+            minimumSize: MaterialStateProperty.all<Size>(const Size(30, 30)),
+          ),
+          child: Text(
+            nomesFolloweds.contains(userName) ? 'Deixar de Seguir' : 'Seguir',
+          ),
+        )
           ],
         ),
       ),

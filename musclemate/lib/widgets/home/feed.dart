@@ -6,6 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:musclemate/pages/perfil_users/perfi_Users_page.dart';
 import 'package:musclemate/widgets/home/PlaceholderPost.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -34,6 +35,17 @@ class _FeedState extends State<Feed>{
     bool isLoading = true;
     String searchText = '';
 
+void _navigateToChoosedPerfil(String userId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('choosedPerfil', userId);
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const PerfilPageUsers()),
+  );
+}
+
+
   Future<void> findTraining() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.getString('token')!;
@@ -58,7 +70,7 @@ class _FeedState extends State<Feed>{
       final responseData = jsonDecode(response.body);
 
      for (var trainingData in responseData) {
-    int id = trainingData['id'];
+
     String tipoDeTreino = trainingData['tipoDeTreino'];
     int totalDeRepeticoes = trainingData['totalDeRepeticoes'];
     int mediaDePesoUtilizado = trainingData['mediaDePesoUtilizado'];
@@ -67,9 +79,9 @@ class _FeedState extends State<Feed>{
     int totalDeSeries = trainingData['totalDeSeries'];
     String userName = trainingData['user'] != null ? trainingData['user']['nome'] : '';
     String imageUrl = trainingData['user'] != null ? trainingData['user']['imageUrl'] : '';
-
+    int userId = trainingData['user'] != null ? trainingData['user']['id'] : '';
     trainingList.add({
-      'id': id,
+
       'tipoDeTreino': tipoDeTreino,
       'totalDeRepeticoes': totalDeRepeticoes,
       'mediaDePesoUtilizado': mediaDePesoUtilizado,
@@ -77,7 +89,8 @@ class _FeedState extends State<Feed>{
       'tempo': tempo,
       'totalDeSeries': totalDeSeries,
       'nome': userName,
-      'imageUrl': imageUrl
+      'imageUrl': imageUrl,
+      'id':userId
     });
   }
 
@@ -248,7 +261,7 @@ Widget build(BuildContext context) {
                           int totalDeSeries = trainingData['totalDeSeries'];
                           String userName = trainingData['nome'] != null ? trainingData['nome'] : '';
                           String imageUrl = trainingData['imageUrl'] != null ? trainingData['imageUrl'] : '';
-
+                          int userId = trainingData['id'] != null ? trainingData['id'] : '';
                           return Padding(
                             padding: const EdgeInsets.all(0.0),
                             child: Column(
@@ -261,18 +274,19 @@ Widget build(BuildContext context) {
                                       Column(
                                         children: [
                                           GestureDetector(
-                                            child: imageUrl.isNotEmpty
-                                              ? ClipRRect(
-                                                  borderRadius: BorderRadius.circular(30.0),
-                                                  child: Image.network(
-                                                    imageUrl,
-                                                    fit: BoxFit.cover,
-                                                    width: 60,
-                                                    height: 60,
-                                                  ),
-                                                )
-                                              : Icon(Icons.person_outline_rounded, size: 50),
-                                          ),
+                                          onTap: () => _navigateToChoosedPerfil(userId.toString()),
+                                          child: imageUrl.isNotEmpty
+                                            ? ClipRRect(
+                                                borderRadius: BorderRadius.circular(30.0),
+                                                child: Image.network(
+                                                  imageUrl,
+                                                  fit: BoxFit.cover,
+                                                  width: 60,
+                                                  height: 60,
+                                                ),
+                                              )
+                                            : Icon(Icons.person_outline_rounded, size: 50),
+                                        ),
                                         ],
                                       ),
                                       SizedBox(width: 20),

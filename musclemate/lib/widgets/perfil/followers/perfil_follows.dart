@@ -150,7 +150,7 @@ List<Map<String, dynamic>> globalData = [];
               late final imageUrl = filteredData[index]['imageUrl'];
 
               return Padding(
-                 padding: const EdgeInsets.only(top:8.0),
+                padding: const EdgeInsets.only(top:8.0, right: 20),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -170,7 +170,7 @@ List<Map<String, dynamic>> globalData = [];
                             )
                           : Icon(Icons.person_outline_rounded, size: 50),
                     ),
-                    SizedBox(width: 0),
+                    SizedBox(width: 10),
                     Text(
                       nome != null ? nome : '',
                       style: TextStyle(
