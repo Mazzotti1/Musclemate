@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:musclemate/pages/home_config/configuration_page.dart';
 import 'package:musclemate/pages/notificacoes_page.dart';
-import 'package:musclemate/pages/searchPeoplePages/searchPeople_page.dart';
 
-import 'package:musclemate/widgets/home/feed.dart';
+import 'package:musclemate/widgets/searchPeople/searchPeople.dart';
 
 
-class FeedPage extends StatefulWidget {
-  const FeedPage({Key? key}) : super(key: key);
+class SearchPeoplePage extends StatefulWidget {
+  const SearchPeoplePage({Key? key}) : super(key: key);
 
   @override
-  _FeedPageState createState()=> _FeedPageState();
+  _SearchPeoplePageState createState()=> _SearchPeoplePageState();
 }
-class _FeedPageState extends State<FeedPage>{
+class _SearchPeoplePageState extends State<SearchPeoplePage>{
   void _navigateToNotifications() {
     Navigator.push(
       context,
@@ -25,7 +24,6 @@ class _FeedPageState extends State<FeedPage>{
       MaterialPageRoute(builder: (context) => const ConfigurationPage()),
     );
   }
-
     void _navigateToSearchPeople() {
     Navigator.push(
       context,
@@ -33,12 +31,13 @@ class _FeedPageState extends State<FeedPage>{
     );
   }
 
+
   @override
   Widget build(BuildContext context) {
    return Scaffold(  appBar: AppBar(
   backgroundColor: const Color.fromRGBO(32, 48, 105, 1),
-  title: const Text('Início'),
-  automaticallyImplyLeading: false,
+  title: const Text('Pesquisar'),
+  automaticallyImplyLeading: true,
   leading: null,
   actions: [
     IconButton(
@@ -56,7 +55,7 @@ class _FeedPageState extends State<FeedPage>{
 
   ],
 ),
-   body: const Feed(),
+   body: const SearchPeople(),
   );
 
   }

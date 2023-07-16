@@ -5,6 +5,8 @@ import 'package:musclemate/pages/home_config/configuration_page.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../searchPeoplePages/searchPeople_page.dart';
+
 
 
 
@@ -54,6 +56,12 @@ Future<void> clearData() async {
     );
   }
 
+     void _navigateToSearchPeople() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SearchPeoplePage()),
+    );
+  }
 
 
 
@@ -73,6 +81,10 @@ Future<void> clearData() async {
           icon: const Icon(Icons.arrow_back),
         ),
         actions: [
+           IconButton(
+     onPressed: _navigateToSearchPeople,
+      icon: const Icon(Icons.person_add),
+    ),
           IconButton(
             onPressed: _navigateToConfigurations,
             icon: const Icon(Icons.settings),

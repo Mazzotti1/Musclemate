@@ -7,6 +7,7 @@ import 'package:musclemate/pages/perfil/perfil_activitys_page.dart';
 import 'package:musclemate/pages/perfil/perfil_progress_page.dart';
 
 import '../home_config/configuration_page.dart';
+import '../searchPeoplePages/searchPeople_page.dart';
 
 
 
@@ -25,6 +26,12 @@ class _PerfilPageState extends State<PerfilPage>{
       MaterialPageRoute(builder: (context) => const ConfigurationPage()),
     );
   }
+    void _navigateToSearchPeople() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SearchPeoplePage()),
+    );
+  }
 
 
   @override
@@ -37,6 +44,10 @@ class _PerfilPageState extends State<PerfilPage>{
           backgroundColor: const Color.fromRGBO(32, 48, 105, 1),
           title: const Text('Perfil'),
           actions: [
+               IconButton(
+     onPressed: _navigateToSearchPeople,
+      icon: const Icon(Icons.person_add),
+    ),
             IconButton(
               onPressed: _navigateToConfigurations,
               icon: const Icon(Icons.settings),

@@ -4,11 +4,13 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:musclemate/widgets/perfil/perfil.dart';
+
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:http/http.dart' as http;
+
+import '../../../pages/perfil_users/perfi_Users_page.dart';
 
 
 class PerfilAFollows extends StatefulWidget {
@@ -27,13 +29,15 @@ List<Map<String, dynamic>> filteredData = [];
     findFollows();
   }
 
- void _navigateToChoosedPerfil() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const Perfil()),
-    );
-  }
+void _navigateToChoosedPerfil(String userId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  prefs.setString('choosedPerfil', userId);
 
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const PerfilPageUsers()),
+  );
+}
 
 List<Map<String, dynamic>> globalData = [];
 
@@ -63,10 +67,11 @@ List<Map<String, dynamic>> globalData = [];
           for (var item in data) {
             String nomeController = item['nome'];
             String? imageUrlController = item['imageUrl'];
-
+            int userId = item['id'];
             Map<String, dynamic> extractedData = {
               'nome': nomeController,
               'imageUrl': imageUrlController,
+              'id': userId
             };
 
             result.add(extractedData);
@@ -136,54 +141,53 @@ List<Map<String, dynamic>> globalData = [];
               ),
             ),
           ),
-          SizedBox(height: 10,),
-          Container(
-            width: double.infinity,
-            height: 15,
-            color: Color.fromRGBO(240, 240, 240, 1),
-          ),
-       Expanded(
-          child: ListView.builder(
-            itemCount: filteredData.length,
-            itemBuilder: (context, index) {
-              late final nome = filteredData[index]['nome'];
-              late final imageUrl = filteredData[index]['imageUrl'];
-
-              return Padding(
-                padding: const EdgeInsets.only(top:8.0, right: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        _navigateToChoosedPerfil();
-                      },
-                      child: imageUrl != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(30.0),
-                              child: Image.network(
-                                imageUrl,
-                                fit: BoxFit.cover,
-                                width: 60,
-                                height: 60,
-                              ),
-                            )
-                          : Icon(Icons.person_outline_rounded, size: 50),
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      nome != null ? nome : '',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+SizedBox(height: 10),
+Container(
+  width: double.infinity,
+  height: 15,
+  color: Color.fromRGBO(240, 240, 240, 1),
+),
+Expanded(
+  child: ListView.builder(
+    itemCount: filteredData.length,
+    itemBuilder: (context, index) {
+      final nome = filteredData[index]['nome'];
+      final imageUrl = filteredData[index]['imageUrl'];
+      final userId = filteredData[index]['id'];
+      return Padding(
+        padding: const EdgeInsets.only(top: 8.0, right: 20),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            GestureDetector(
+              onTap: () => _navigateToChoosedPerfil(userId.toString()),
+              child: imageUrl.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(30.0),
+                      child: Image.network(
+                        imageUrl,
+                        fit: BoxFit.cover,
+                        width: 60,
+                        height: 60,
                       ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                    )
+                  : Icon(Icons.person_outline_rounded, size: 50),
+            ),
+            SizedBox(width: 10),
+            Text(
+              nome ?? '',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
         ),
+      );
+    },
+  ),
+),
+
       ],
     ),
     );

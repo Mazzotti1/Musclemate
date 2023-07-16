@@ -26,7 +26,6 @@ class _FeedState extends State<Feed>{
   void initState() {
     super.initState();
     findTraining();
-
   }
 
 
@@ -113,50 +112,22 @@ void _navigateToChoosedPerfil(String userId) async {
   }
 }
 
+
 Widget build(BuildContext context) {
   initializeDateFormatting();
   return Column(
     children: [
-      Padding(
-          padding: const EdgeInsets.only(top: 10.0, left: 20),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          width: 350,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: const Color.fromRGBO(242, 242, 242, 1),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(left: 20.0),
-                            child: Row(
-                              children: [
-                                Icon(Icons.search, color: Colors.black45),
-                                SizedBox(width: 5),
-                                Expanded(
-                                  child: TextField(
-                                    onChanged: (value) {
-                                    setState(() {
-                                      searchText = value;
-                                    });
-                                  },
-                                    decoration: InputDecoration(
-                                      hintText: 'Pesquisar novas pessoas',
-                                      hintStyle: TextStyle(color: Colors.black45),
-                                      border: InputBorder.none,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                    ),
-                  ),
+     Padding(
+       padding: const EdgeInsets.only(top:25.0),
+       child: Text(
+            'Bom treino!',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+     ),
       Expanded(
         child: isLoading  &&  trainingList.isEmpty
           ? const Center(

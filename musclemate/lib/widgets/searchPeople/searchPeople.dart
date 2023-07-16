@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:musclemate/widgets/searchPeople/usersPlaceholder.dart';
 
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,22 +14,23 @@ import 'package:http/http.dart' as http;
 import '../../../pages/perfil_users/perfi_Users_page.dart';
 
 
-class PerfilAFollowing extends StatefulWidget {
-  const PerfilAFollowing({Key? key}) : super(key: key);
+
+class SearchPeople extends StatefulWidget {
+  const SearchPeople({Key? key}) : super(key: key);
 
 @override
-  _PerfilAFollowingState createState()=> _PerfilAFollowingState();
+  _SearchPeopleState createState()=> _SearchPeopleState();
 }
-class _PerfilAFollowingState extends State<PerfilAFollowing>{
+class _SearchPeopleState extends State<SearchPeople>{
 TextEditingController searchController = TextEditingController();
 List<Map<String, dynamic>> filteredData = [];
+ bool isLoading = true;
 
-     @override
+ @override
   void initState() {
     super.initState();
-    findFollowing();
+    findUsers();
   }
-
 void _navigateToChoosedPerfil(String userId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString('choosedPerfil', userId);
@@ -39,21 +41,19 @@ void _navigateToChoosedPerfil(String userId) async {
   );
 }
 
-
-
 List<Map<String, dynamic>> globalData = [];
 
 
- Future<void> findFollowing() async {
+ Future<void> findUsers() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String token = prefs.getString('token')!;
     await dotenv.load(fileName: ".env");
 
     String? apiUrl = dotenv.env['API_URL'];
 
-    final userData = JwtDecoder.decode(token);
-    String userId = (userData['sub']);
-    String url = '$apiUrl/users/followed/$userId';
+    final userTokenData = JwtDecoder.decode(token);
+    String idAtual = (userTokenData['sub']);
+    String url = '$apiUrl/users';
 
     try {
       final response = await http.get(
@@ -66,18 +66,23 @@ List<Map<String, dynamic>> globalData = [];
       List<Map<String, dynamic>> extractNamesAndImageUrls(List<dynamic> data) {
           List<Map<String, dynamic>> result = [];
 
-          for (var item in data) {
-            String nomeController = item['nome'];
-            String? imageUrlController = item['imageUrl'];
-            int userId = item['id'];
-            Map<String, dynamic> extractedData = {
-              'nome': nomeController,
-              'imageUrl': imageUrlController,
-              'id':userId,
-            };
+ for (var item in data) {
+    int userId = item['id'];
 
-            result.add(extractedData);
-          }
+
+    if (userId.toString() != idAtual) {
+      String nomeController = item['nome'];
+      String? imageUrlController = item['imageUrl'];
+
+      Map<String, dynamic> extractedData = {
+        'nome': nomeController,
+        'imageUrl': imageUrlController,
+        'id': userId
+      };
+
+      result.add(extractedData);
+    }
+  }
 
           return result;
       }
@@ -89,6 +94,10 @@ List<Map<String, dynamic>> globalData = [];
     globalData = extractedData;
     filteredData = extractedData;
   });
+
+   setState(() {
+        isLoading = false;
+      });
       print(extractedData);
     } else {
       print('${response.statusCode}');
@@ -143,23 +152,25 @@ List<Map<String, dynamic>> globalData = [];
               ),
             ),
           ),
-         SizedBox(height: 10),
+SizedBox(height: 10),
 Container(
   width: double.infinity,
   height: 15,
   color: Color.fromRGBO(240, 240, 240, 1),
 ),
-Expanded(
-  child: ListView.builder(
+ Expanded(
+  child: isLoading ? Center(
+              child: UsersPlaceholder(),
+            ) :  ListView.builder(
     itemCount: filteredData.length,
     itemBuilder: (context, index) {
       final nome = filteredData[index]['nome'];
       final imageUrl = filteredData[index]['imageUrl'];
-      int userId = filteredData[index]['id'];
+      final userId = filteredData[index]['id'];
       return Padding(
-        padding: const EdgeInsets.only(top: 8.0, right: 20),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        padding: const EdgeInsets.only(top: 8.0, left:20),
+        child:  Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
             GestureDetector(
               onTap: () => _navigateToChoosedPerfil(userId.toString()),
@@ -173,7 +184,13 @@ Expanded(
                         height: 60,
                       ),
                     )
-                  : Icon(Icons.person_outline_rounded, size: 50),
+                  : Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(30.0),
+            border: Border.all(color: Colors.black, width: 2.0),
+          ),
+          child: Icon(Icons.person_outline_rounded, size: 50),
+        ),
             ),
             SizedBox(width: 10),
             Text(
@@ -189,6 +206,7 @@ Expanded(
     },
   ),
 ),
+
 
       ],
     ),

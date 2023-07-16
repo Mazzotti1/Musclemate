@@ -180,7 +180,7 @@ Widget build(BuildContext context) {
       ),
        Expanded(
         child: isLoading  &&  trainingList.isEmpty
-          ? const Center(
+          ?  Center(
   child: Column(
 
     children: [
@@ -202,7 +202,7 @@ Widget build(BuildContext context) {
       Padding(
         padding: EdgeInsets.only(left: 15.0, right: 15.0),
         child: Text(
-          'Você ainda não realizou nenhum treino! Aqui você pode ver suas atividades!',
+          '$userName ainda não realizou nenhum treino! Aqui você pode ver as atividades dele!',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 24,
