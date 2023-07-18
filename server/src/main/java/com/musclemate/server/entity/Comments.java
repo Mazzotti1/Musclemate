@@ -19,15 +19,15 @@ public class Comments {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "treino_id")
-    private TreinosConcluidos treinoConcluido;
+    private TreinosConcluidos treinoId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "user_id")
-    private User usuario;
+    private User user;
 
-    private String comment_text;
+    private String commentText;
 
     private Timestamp commented_at;
 }

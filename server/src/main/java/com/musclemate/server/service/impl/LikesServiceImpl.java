@@ -1,7 +1,6 @@
 package com.musclemate.server.service.impl;
 
 
-import com.musclemate.server.entity.Followers;
 import com.musclemate.server.entity.Likes;
 import com.musclemate.server.entity.TreinosConcluidos;
 import com.musclemate.server.entity.User;
@@ -50,9 +49,19 @@ public class LikesServiceImpl {
             return repository.findByTreinoId(treinoId);
         }
 
+     public void deleteLike(Long id) {
+        Likes like = repository.findById(id).orElse(null);
+        if (like != null) {
+            Long treinoId = like.getTreinoId().getId();
+            Long userId = like.getUser().getId();
 
+            // Remove o like da tabela
+            repository.deleteById(id);
 
-
-
-
+            // Remove a referência do like no mapa
+            if (likesMap.containsKey(treinoId)) {
+                likesMap.get(treinoId).remove(userId);
+            }
+        }
+    }
 }

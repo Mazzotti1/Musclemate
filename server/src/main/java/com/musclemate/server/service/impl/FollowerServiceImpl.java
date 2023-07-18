@@ -23,6 +23,7 @@ public class FollowerServiceImpl {
         repository.save(followers);
     }
 
+
     public void deixarDeSeguirUsuario(User follower, User followed) {
         Followers followers = repository.findByFollowerAndFollowed(follower, followed);
         repository.delete(followers);

@@ -193,11 +193,14 @@ Container(
         ),
             ),
             SizedBox(width: 10),
-            Text(
-              nome ?? '',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+            GestureDetector(
+              onTap: () => _navigateToChoosedPerfil(userId.toString()),
+              child: Text(
+                nome ?? '',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],

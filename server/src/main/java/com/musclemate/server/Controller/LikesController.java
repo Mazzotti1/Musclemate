@@ -26,7 +26,7 @@ public class LikesController {
     @PostMapping("/addLike/{userId}/{treinoId}")
     public ResponseEntity<Likes> addLike(@PathVariable Long userId, @PathVariable Long treinoId) {
         Likes like = service.addLike(userId, treinoId);
-        return new ResponseEntity<>(like, HttpStatus.CREATED);
+        return new ResponseEntity<>(like, HttpStatus.OK);
     }
 
 
@@ -35,7 +35,11 @@ public class LikesController {
         return service.getLikesByPosts(treinoId);
     }
 
-
+    @DeleteMapping("/dislike/{id}")
+    public ResponseEntity<Void> deleteLike(@PathVariable Long id) {
+        service.deleteLike(id);
+        return ResponseEntity.noContent().build();
+    }
 
 
 }

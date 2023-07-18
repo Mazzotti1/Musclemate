@@ -30,10 +30,11 @@ class _FeedState extends State<Feed>{
 
 
 
+    bool isLiked = false;
     List<Map<String, dynamic>> trainingList = [];
     bool isLoading = true;
     String searchText = '';
-
+    int likedId = 0;
 void _navigateToChoosedPerfil(String userId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString('choosedPerfil', userId);
@@ -69,7 +70,7 @@ void _navigateToChoosedPerfil(String userId) async {
       final responseData = jsonDecode(response.body);
 
      for (var trainingData in responseData) {
-
+    int postId = trainingData['id'];
     String tipoDeTreino = trainingData['tipoDeTreino'];
     int totalDeRepeticoes = trainingData['totalDeRepeticoes'];
     int mediaDePesoUtilizado = trainingData['mediaDePesoUtilizado'];
@@ -80,7 +81,7 @@ void _navigateToChoosedPerfil(String userId) async {
     String imageUrl = trainingData['user'] != null ? trainingData['user']['imageUrl'] : '';
     int userId = trainingData['user'] != null ? trainingData['user']['id'] : '';
     trainingList.add({
-
+      'postId':postId,
       'tipoDeTreino': tipoDeTreino,
       'totalDeRepeticoes': totalDeRepeticoes,
       'mediaDePesoUtilizado': mediaDePesoUtilizado,
@@ -90,6 +91,7 @@ void _navigateToChoosedPerfil(String userId) async {
       'nome': userName,
       'imageUrl': imageUrl,
       'id':userId
+
     });
   }
 
@@ -112,6 +114,86 @@ void _navigateToChoosedPerfil(String userId) async {
   }
 }
 
+Future<void> addLike(int postId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userTokenData = JwtDecoder.decode(token);
+  String userId = (userTokenData['sub']);
+  String url = '$apiUrl/likes/addLike/$userId/$postId';
+
+  try {
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+       final responseData = jsonDecode(response.body);
+       final likeId = responseData['id'];
+      setState(() {
+        isLiked = true;
+        likedId = likeId;
+      });
+
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
+Future<void> removeLike(int likeId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+
+  String url = '$apiUrl/likes/dislike/$likeId';
+
+  try {
+    final response = await http.delete(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        isLiked = false;
+      });
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
 
 Widget build(BuildContext context) {
   initializeDateFormatting();
@@ -233,6 +315,8 @@ Widget build(BuildContext context) {
                           String userName = trainingData['nome'] != null ? trainingData['nome'] : '';
                           String imageUrl = trainingData['imageUrl'] != null ? trainingData['imageUrl'] : '';
                           int userId = trainingData['id'] != null ? trainingData['id'] : '';
+                          int postId = trainingData ['postId'] != null ? trainingData ['postId'] : '';
+
                           return Padding(
                             padding: const EdgeInsets.all(0.0),
                             child: Column(
@@ -402,10 +486,30 @@ Widget build(BuildContext context) {
                                         width: double.infinity,
                                         height: 60,
                                         color: const Color.fromRGBO(240, 240, 240, 1),
-                                        child: const Row(
+                                        child:  Row(
                                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                           children: [
-                                            Icon(Icons.favorite),
+                                          GestureDetector(
+                                            onTap: () async {
+                                              if (isLiked) {
+
+                                                removeLike(likedId);
+                                                  setState(() {
+                                                    isLiked = false;
+                                                  });
+                                              } else {
+
+                                                addLike(postId);
+                                                  setState(() {
+                                                    isLiked = true;
+                                                  });
+                                              }
+                                            },
+                                            child: Icon(
+                                              Icons.favorite,
+                                              color: isLiked ? Colors.red : const Color.fromARGB(255, 39, 38, 38),
+                                            ),
+                                          ),
                                             VerticalDivider(
                                               color: Colors.grey,
                                               thickness: 1,

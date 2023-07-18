@@ -5,7 +5,7 @@ import 'package:musclemate/pages/Feed_page.dart';
 import 'package:musclemate/pages/home_config/configuration_page.dart';
 import 'package:musclemate/widgets/record/record.dart';
 
-import '../searchPeoplePages/searchPeople_page.dart';
+
 
 
 
@@ -28,12 +28,6 @@ class _RecordPageState extends State<RecordPage>{
       MaterialPageRoute(builder: (context) => const FeedPage()),
     );
   }
-     void _navigateToSearchPeople() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SearchPeoplePage()),
-    );
-  }
 
    @override
   Widget build(BuildContext context) {
@@ -43,10 +37,7 @@ class _RecordPageState extends State<RecordPage>{
         backgroundColor: const Color.fromRGBO(32, 48, 105, 1),
         title: const Text('Gravar'),
          actions: [
-             IconButton(
-     onPressed: _navigateToSearchPeople,
-      icon: const Icon(Icons.person_add),
-    ),
+
              IconButton(
      onPressed: _navigateToConfigurations,
       icon: const Icon(Icons.settings),

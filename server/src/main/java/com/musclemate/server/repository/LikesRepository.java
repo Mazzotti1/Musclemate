@@ -17,8 +17,6 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     List<Likes> findByTreinoId(TreinosConcluidos treinoId);
 
-    void deleteByTreinoIdAndUserId(Long treinoId, Long userId);
-
 }
 
 
