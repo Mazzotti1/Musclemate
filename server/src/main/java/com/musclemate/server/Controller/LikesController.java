@@ -35,6 +35,10 @@ public class LikesController {
         return service.getLikesByPosts(treinoId);
     }
 
+    @GetMapping("/user/{userId}")
+    public List<Likes> getLikesByUser(@PathVariable Long userId) {
+        return service.getLikesByUser(userId);
+    }
     @DeleteMapping("/dislike/{id}")
     public ResponseEntity<Void> deleteLike(@PathVariable Long id) {
         service.deleteLike(id);

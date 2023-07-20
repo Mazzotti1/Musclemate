@@ -17,6 +17,8 @@ public interface LikesRepository extends JpaRepository<Likes, Long> {
 
     List<Likes> findByTreinoId(TreinosConcluidos treinoId);
 
+    List<Likes> findByUser(User user);
+
 }
 
 

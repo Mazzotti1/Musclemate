@@ -26,15 +26,20 @@ class _FeedState extends State<Feed>{
   void initState() {
     super.initState();
     findTraining();
+    getLikesByUser();
+
   }
 
 
 
-    bool isLiked = false;
+    Map<int, bool> isLikedPost = {};
+    Map<int, int> likedIds = {};
+
+    List<int> postsIds = [];
     List<Map<String, dynamic>> trainingList = [];
     bool isLoading = true;
     String searchText = '';
-    int likedId = 0;
+
 void _navigateToChoosedPerfil(String userId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString('choosedPerfil', userId);
@@ -80,6 +85,7 @@ void _navigateToChoosedPerfil(String userId) async {
     String userName = trainingData['user'] != null ? trainingData['user']['nome'] : '';
     String imageUrl = trainingData['user'] != null ? trainingData['user']['imageUrl'] : '';
     int userId = trainingData['user'] != null ? trainingData['user']['id'] : '';
+    int likesCount = await getLikesByPost(postId);
     trainingList.add({
       'postId':postId,
       'tipoDeTreino': tipoDeTreino,
@@ -90,9 +96,10 @@ void _navigateToChoosedPerfil(String userId) async {
       'totalDeSeries': totalDeSeries,
       'nome': userName,
       'imageUrl': imageUrl,
-      'id':userId
-
+      'id':userId,
+      'likesCount':likesCount
     });
+
   }
 
       setState(() {
@@ -138,8 +145,9 @@ Future<void> addLike(int postId) async {
        final responseData = jsonDecode(response.body);
        final likeId = responseData['id'];
       setState(() {
-        isLiked = true;
-        likedId = likeId;
+        isLikedPost[postId] = true;
+         likedIds[postId] = likeId;
+
       });
 
     } else {
@@ -157,7 +165,7 @@ Future<void> addLike(int postId) async {
   }
 }
 
-Future<void> removeLike(int likeId) async {
+Future<void> removeLike(int likeId, int postId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.getString('token')!;
 
@@ -178,7 +186,9 @@ Future<void> removeLike(int likeId) async {
 
     if (response.statusCode == 200) {
       setState(() {
-        isLiked = false;
+        isLikedPost[postId] = true;
+        likedIds.remove(postId);
+
       });
     } else {
       if (response.statusCode == 400) {
@@ -194,6 +204,89 @@ Future<void> removeLike(int likeId) async {
     print('Erro: $e');
   }
 }
+
+Future<void> getLikesByUser() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userTokenData = JwtDecoder.decode(token);
+  String userId = (userTokenData['sub']);
+  String url = '$apiUrl/likes/user/$userId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+       final responseData = jsonDecode(response.body);
+
+      for (var likeData in responseData) {
+        int likeId = likeData['id'] != null ? likeData['id'] : '';
+        int postId = likeData['treinoId'] != null ? likeData['treinoId']['id'] : '';
+        setState(() {
+            isLikedPost[postId] = true;
+             likedIds[postId] = likeId;
+        });
+      }
+
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
+Future<int> getLikesByPost(int postId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  String url = '$apiUrl/likes/treino/$postId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      return responseData.length;
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        print('Erro: ${response.statusCode}');
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+  return 0;
+}
+
 
 Widget build(BuildContext context) {
   initializeDateFormatting();
@@ -316,7 +409,7 @@ Widget build(BuildContext context) {
                           String imageUrl = trainingData['imageUrl'] != null ? trainingData['imageUrl'] : '';
                           int userId = trainingData['id'] != null ? trainingData['id'] : '';
                           int postId = trainingData ['postId'] != null ? trainingData ['postId'] : '';
-
+                          int likesCount = trainingData ['likesCount'] != null ? trainingData ['likesCount'] : '';
                           return Padding(
                             padding: const EdgeInsets.all(0.0),
                             child: Column(
@@ -475,9 +568,37 @@ Widget build(BuildContext context) {
                                         ),
                                       ],
                                     ),
+
                                   ),
+
                                 ),
-                                const SizedBox(height: 15,),
+                                SizedBox(height: 5,),
+                              Container(
+                                        width: double.infinity,
+                                        height: 10,
+                                        color: const Color.fromRGBO(240, 240, 240, 1),
+                                      ),
+                                Padding(
+                                  padding: const EdgeInsets.only(left:50, top:10,),
+                                  child: Row(
+                                    children: [
+                                        Column(
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text('Curtidas',
+                                                          style: TextStyle(fontSize: 13)),
+                                                          SizedBox(width: 10,),
+                                                           Text(likesCount.toString(),
+                                                      style: TextStyle(fontSize: 13)),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                       ],
+                                    ),
+                                ),
+                                const SizedBox(height: 10,),
                                 Padding(
                                   padding: const EdgeInsets.all(0.0),
                                   child: Column(
@@ -491,23 +612,27 @@ Widget build(BuildContext context) {
                                           children: [
                                           GestureDetector(
                                             onTap: () async {
-                                              if (isLiked) {
+                                              if (isLikedPost.containsKey(postId) && isLikedPost[postId] == true) {
+                                                int? likeId = likedIds[postId];
 
-                                                removeLike(likedId);
+                                                if (likeId != null) {
+                                                  await removeLike(likeId, postId);
                                                   setState(() {
-                                                    isLiked = false;
+                                                    isLikedPost[postId] = false;
                                                   });
+                                                }
                                               } else {
-
-                                                addLike(postId);
-                                                  setState(() {
-                                                    isLiked = true;
-                                                  });
+                                                await addLike(postId);
+                                                setState(() {
+                                                  isLikedPost[postId] = true;
+                                                });
                                               }
                                             },
                                             child: Icon(
                                               Icons.favorite,
-                                              color: isLiked ? Colors.red : const Color.fromARGB(255, 39, 38, 38),
+                                              color: isLikedPost.containsKey(postId) && isLikedPost[postId] == true
+                                                  ? Colors.red
+                                                  : const Color.fromARGB(255, 39, 38, 38),
                                             ),
                                           ),
                                             VerticalDivider(
@@ -521,6 +646,7 @@ Widget build(BuildContext context) {
                                           ],
                                         ),
                                       ),
+
                                     ],
                                   ),
                                 ),

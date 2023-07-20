@@ -49,6 +49,12 @@ public class LikesServiceImpl {
             return repository.findByTreinoId(treinoId);
         }
 
+    public List<Likes> getLikesByUser(Long userId) {
+        User user = new User();
+        user.setId(userId);
+        return repository.findByUser(user);
+    }
+
      public void deleteLike(Long id) {
         Likes like = repository.findById(id).orElse(null);
         if (like != null) {
