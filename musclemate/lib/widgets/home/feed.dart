@@ -57,7 +57,6 @@ void _navigateToCommentPage(int postId) async {
     MaterialPageRoute(builder: (context) => Comment(postId: postId)),
   );
   setState(() {
-
        int currentComments = trainingList
      .firstWhere((training) => training['postId'] == postId)['commentsCount'];
       trainingList.firstWhere((training) => training['postId'] == postId)
@@ -391,7 +390,6 @@ Widget build(BuildContext context) {
     ],
   ),
 )
-
             : isLoading
                 ?
                  Center(
@@ -406,46 +404,6 @@ Widget build(BuildContext context) {
                         child: PlaceholderPost(),
                       );
                     } else {
-                    Padding(
-                        padding: const EdgeInsets.only(top: 10.0, left: 20),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                width: 350,
-                                height: 40,
-                                decoration: BoxDecoration(
-                                  color: const Color.fromRGBO(242, 242, 242, 1),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(left: 20.0),
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.search, color: Colors.black45),
-                                      SizedBox(width: 5),
-                                      Expanded(
-                                        child: TextField(
-                                          onChanged: (value) {
-                                          setState(() {
-                                            searchText = value;
-                                          });
-                                        },
-                                          decoration: InputDecoration(
-                                            hintText: 'Pesquisar novas pessoas',
-                                            hintStyle: TextStyle(color: Colors.black45),
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
                       return ListView.builder(
                         itemCount: trainingList.length,
                         itemBuilder: (context, index) {
@@ -726,7 +684,7 @@ Widget build(BuildContext context) {
                                           ],
                                         ),
                                       ),
-
+                                    SizedBox(height: 30,)
                                     ],
                                   ),
                                 ),
@@ -735,10 +693,15 @@ Widget build(BuildContext context) {
                           );
                         },
                       );
+
                     }
+
                   },
+
                 ),
+
       ),
+       SizedBox(height: 30,)
     ],
   );
 }

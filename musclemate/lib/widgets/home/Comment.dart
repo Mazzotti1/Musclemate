@@ -38,7 +38,9 @@ class _CommentState extends State<Comment>{
 void _navigateToChoosedPerfil(String userId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString('choosedPerfil', userId);
+  if(userId != userIdFix){
 
+  }
   Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => const PerfilPageUsers()),
