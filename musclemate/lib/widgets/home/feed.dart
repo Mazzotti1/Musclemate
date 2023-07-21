@@ -56,6 +56,15 @@ void _navigateToCommentPage(int postId) async {
     context,
     MaterialPageRoute(builder: (context) => Comment(postId: postId)),
   );
+  setState(() {
+
+       int currentComments = trainingList
+     .firstWhere((training) => training['postId'] == postId)['commentsCount'];
+      trainingList.firstWhere((training) => training['postId'] == postId)
+     ['commentsCount'] = currentComments + 1;
+  });
+
+
 }
 
   Future<void> findTraining() async {
@@ -689,6 +698,9 @@ Widget build(BuildContext context) {
                                                 .firstWhere((training) => training['postId'] == postId)['likesCount'];
                                                  trainingList.firstWhere((training) => training['postId'] == postId)
                                                 ['likesCount'] = currentLikes + 1;
+
+
+
                                                   isLikedPost[postId] = true;
                                                 });
                                               }

@@ -24,19 +24,15 @@ class Comment extends StatefulWidget {
 class _CommentState extends State<Comment>{
 
   bool isLoading = true;
-  String newComment = '';
+  final TextEditingController commentController = TextEditingController();
 
-  void _onCommentChanged(String text) {
-    setState(() {
-      newComment = text;
-    });
-  }
 
   @override
   void initState() {
     super.initState();
     int postId = widget.postId;
     getCommentsByPost(postId);
+    fetchUserData();
   }
 
 void _navigateToChoosedPerfil(String userId) async {
@@ -50,6 +46,48 @@ void _navigateToChoosedPerfil(String userId) async {
 }
 
 List<Map<String, dynamic>> commentsList = [];
+String imageUrlFix = '';
+String userNameFix = '';
+String userIdFix = '';
+
+Future<void> fetchUserData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    await dotenv.load(fileName: ".env");
+
+    String? apiUrl = dotenv.env['API_URL'];
+
+    final userData = JwtDecoder.decode(token);
+    String userId = (userData['sub']);
+    String url = '$apiUrl/users/$userId';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      );
+
+      if (response.statusCode == 200) {
+     final userData = jsonDecode(response.body) as Map<String, dynamic>;
+
+      setState(() {
+        userNameFix  =  userData['nome'] ?? '';
+        userIdFix =  userData['sub'] ?? '';
+        imageUrlFix = userData['imageUrl'] ?? '';
+      });
+
+      } else {
+        print('${response.statusCode}');
+      }
+    } catch (e) {
+      print('$e');
+    }
+  }
+
+
 
 Future<int> getCommentsByPost(int postId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -127,7 +165,7 @@ String formatCommentedAt(String commentedAt) {
   }
 }
 
-Future<void> addComment(int postId) async {
+Future<void> addComment(int postId, String commentText) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.getString('token')!;
 
@@ -140,7 +178,7 @@ Future<void> addComment(int postId) async {
 
   try {
     Map<String, dynamic> requestBody = {
-      'commentText': 'Este é um comentário de exemplo.',
+      'commentText': commentText,
     };
 
     final response = await http.post(
@@ -153,8 +191,9 @@ Future<void> addComment(int postId) async {
     );
 
     if (response.statusCode == 200) {
-      final responseData = jsonDecode(response.body);
-      final commentId = responseData['id'];
+       print('Comentário feito');
+
+
 
     } else {
       if (response.statusCode == 400) {
@@ -169,20 +208,10 @@ Future<void> addComment(int postId) async {
   }
 }
 
-void _submitComment() {
-
-    setState(() {
-      commentsList.add({
-        'userName': 'Your Username',
-        'commentText': newComment,
-      });
-
-      newComment = '';
-    });
-  }
 
 
-@override
+
+ @override
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
@@ -190,121 +219,192 @@ Widget build(BuildContext context) {
       centerTitle: true,
       backgroundColor: Colors.black,
     ),
-    body:  isLoading
-        ? Center(
-          )
-        : commentsList.isEmpty
-            ? Center(
-                child: Text(
-                  'Nenhum comentário disponível ainda.',
-                  style: TextStyle(fontSize: 20),
-                ),
-              )
-            :
+    body: Column(
+      children: [
+        Visibility(
+          visible: isLoading,
+          child: Center(), // You can show a loading indicator here
+        ),
+        Visibility(
+          visible: !isLoading && commentsList.isEmpty,
+          child: Expanded(
+            child: Center(
+              child: Text(
+                'Nenhum comentário disponível ainda.',
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
+          ),
+        ),
+        Visibility(
+          visible: !isLoading && commentsList.isNotEmpty,
+          child: Expanded(
+            child: ListView.builder(
+              itemCount: commentsList.length,
+              itemBuilder: (context, index) {
+                          var postData = commentsList.reversed.toList()[index];
+                          String userName = postData['userName'];
+                          String imageUrl = postData['imageUrl'];
+                          String commentText = postData['commentText'];
+                          String commentedAt = postData['commentedAt'];
+                          int userId = postData['id'] != null ? postData['id'] : '';
 
-                ListView.builder(
-                    itemCount: commentsList.length,
-                    itemBuilder: (context, index) {
-                      var postData = commentsList.reversed.toList()[index];
-                      String userName = postData['userName'];
-                      String imageUrl = postData['imageUrl'];
-                      String commentText = postData['commentText'];
-                      String commentedAt = postData['commentedAt'];
-                      int userId = postData['id'] != null ? postData['id'] : '';
-
-                      return FutureBuilder<void>(
-                        future: Future.delayed(Duration(milliseconds: 500)),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return Center(
-                              child: PlaceholderComments(),
-                            );
-                          } else {
-                            return Padding(
-                              padding: const EdgeInsets.all(0.0),
-                              child: Column(
-                                children: [
-                                  Padding(
-                                    padding: EdgeInsets.only(top: 20.0, left: 20),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      children: [
-                                        Column(
+                          return FutureBuilder<void>(
+                            future: Future.delayed(Duration(milliseconds: 500)),
+                            builder: (context, snapshot) {
+                              if (snapshot.connectionState == ConnectionState.waiting) {
+                                return Center(
+                                  child: PlaceholderComments(),
+                                );
+                              } else {
+                                return Padding(
+                                  padding: const EdgeInsets.all(0.0),
+                                  child: Column(
+                                    children: [
+                                      Padding(
+                                        padding: EdgeInsets.only(top: 20.0, left: 20),
+                                        child: Row(
+                                          crossAxisAlignment: CrossAxisAlignment.center,
                                           children: [
-                                            GestureDetector(
-                                              onTap: () =>
-                                                  _navigateToChoosedPerfil(userId.toString()),
-                                              child: imageUrl.isNotEmpty
-                                                  ? ClipRRect(
-                                                      borderRadius:
-                                                          BorderRadius.circular(30.0),
-                                                      child: Image.network(
-                                                        imageUrl,
-                                                        fit: BoxFit.cover,
-                                                        width: 40,
-                                                        height: 40,
-                                                      ),
-                                                    )
-                                                  : Icon(Icons.person_outline_rounded, size: 40),
+                                            Column(
+                                              children: [
+                                                GestureDetector(
+                                                  onTap: () => _navigateToChoosedPerfil(userId.toString()),
+                                                  child: imageUrl.isNotEmpty
+                                                      ? ClipRRect(
+                                                          borderRadius: BorderRadius.circular(30.0),
+                                                          child: Image.network(
+                                                            imageUrl,
+                                                            fit: BoxFit.cover,
+                                                            width: 40,
+                                                            height: 40,
+                                                          ),
+                                                        )
+                                                      : Icon(Icons.person_outline_rounded, size: 40),
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(width: 20),
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  Padding(
+                                                    padding: EdgeInsets.only(top: 0.0),
+                                                    child: Row(
+                                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                                      children: [
+                                                        Text(
+                                                          userName,
+                                                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                                                        ),
+                                                        SizedBox(width: 10,),
+                                                        Row(
+                                                          crossAxisAlignment: CrossAxisAlignment.center,
+                                                          children: [
+                                                            Text(
+                                                              formatCommentedAt(commentedAt),
+                                                              style: TextStyle(fontSize: 15),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                  Padding(
+                                                    padding: const EdgeInsets.only(right: 20, top: 6),
+                                                    child: Row(
+                                                      children: [
+                                                        Expanded(
+                                                          child: Text(
+                                                            commentText,
+                                                            style: TextStyle(fontSize: 15),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ],
                                         ),
-                                        SizedBox(width: 20),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Padding(
-                                                padding: EdgeInsets.only(top: 0.0),
-                                                child: Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      userName,
-                                                      style: TextStyle(fontSize: 15,fontWeight: FontWeight.bold),
-                                                    ),
-                                                  SizedBox(width: 10,),
-                                                  Row(
-                                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                                  children: [
-                                                    Text(
-                                                      formatCommentedAt(commentedAt),
-                                                      style: TextStyle(fontSize: 15),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ],
-                                                ),
-                                              ),
-                                            Padding(
-                                              padding: const EdgeInsets.only( right:20, top:6),
-                                              child: Row(
-                                                  children: [
-                                                    Expanded(
-                                                      child: Text(
-                                                        commentText,
-                                                        style: TextStyle(fontSize: 15),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                            ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            );
-                          }
+                                );
+                              }
+                            },
+                          );
                         },
-                      );
-                    },
+                      ),
+                    ),
+                 ),
+        Container(
+          padding: const EdgeInsets.only(bottom: 50.0),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: imageUrlFix.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(30.0),
+                        child: Image.network(
+                          imageUrlFix,
+                          fit: BoxFit.cover,
+                          width: 40,
+                          height: 40,
+                        ),
+                      )
+                    : Icon(Icons.person_outline_rounded, size: 40),
+              ),
+              Expanded(
+                child: Container(
+
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20.0),
+                    border: Border.all(),
                   ),
+                  padding: EdgeInsets.symmetric(horizontal: 10.0),
+                  child: TextField(
+                    controller: commentController,
+                    decoration: InputDecoration(
+                      hintText: "Comentar como $userNameFix",
+                      border: InputBorder.none,
+                    ),
+                  ),
+                ),
+              ),
+              TextButton(
+                onPressed: () async {
+                  String commentText = commentController.text;
+                  int postId = widget.postId;
+                    if (commentText.isNotEmpty) {
+                     await addComment(postId, commentText);
+                      commentController.clear();
+                    }
+                  setState(() {
+                      commentsList.clear();
+                      getCommentsByPost(postId);
+                  });
+                },
 
-
+                child: Text(
+                  "Publicar",
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
+            ],
+          ),
+        )
+      ],
+    ),
   );
 }
 }
+
