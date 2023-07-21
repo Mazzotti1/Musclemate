@@ -7,6 +7,7 @@ import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:musclemate/pages/perfil_users/perfi_Users_page.dart';
+import 'package:musclemate/widgets/home/Comment.dart';
 import 'package:musclemate/widgets/home/PlaceholderPost.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,6 +51,12 @@ void _navigateToChoosedPerfil(String userId) async {
   );
 }
 
+void _navigateToCommentPage(int postId) async {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => Comment(postId: postId)),
+  );
+}
 
   Future<void> findTraining() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -86,6 +93,7 @@ void _navigateToChoosedPerfil(String userId) async {
     String imageUrl = trainingData['user'] != null ? trainingData['user']['imageUrl'] : '';
     int userId = trainingData['user'] != null ? trainingData['user']['id'] : '';
     int likesCount = await getLikesByPost(postId);
+    int commentsCount = await getCommentsByPost(postId);
     trainingList.add({
       'postId':postId,
       'tipoDeTreino': tipoDeTreino,
@@ -97,7 +105,8 @@ void _navigateToChoosedPerfil(String userId) async {
       'nome': userName,
       'imageUrl': imageUrl,
       'id':userId,
-      'likesCount':likesCount
+      'likesCount':likesCount,
+      'commentsCount':commentsCount
     });
 
   }
@@ -146,8 +155,7 @@ Future<void> addLike(int postId) async {
        final likeId = responseData['id'];
       setState(() {
         isLikedPost[postId] = true;
-         likedIds[postId] = likeId;
-
+        likedIds[postId] = likeId;
       });
 
     } else {
@@ -185,8 +193,9 @@ Future<void> removeLike(int likeId, int postId) async {
     );
 
     if (response.statusCode == 200) {
-      setState(() {
-        isLikedPost[postId] = true;
+ setState(() {
+
+        isLikedPost[postId] = false;
         likedIds.remove(postId);
 
       });
@@ -260,6 +269,41 @@ Future<int> getLikesByPost(int postId) async {
 
   String? apiUrl = dotenv.env['API_URL'];
   String url = '$apiUrl/likes/treino/$postId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      return responseData.length;
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        print('Erro: ${response.statusCode}');
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+  return 0;
+}
+
+Future<int> getCommentsByPost(int postId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  String url = '$apiUrl/comments/treino/$postId';
 
   try {
     final response = await http.get(
@@ -410,6 +454,7 @@ Widget build(BuildContext context) {
                           int userId = trainingData['id'] != null ? trainingData['id'] : '';
                           int postId = trainingData ['postId'] != null ? trainingData ['postId'] : '';
                           int likesCount = trainingData ['likesCount'] != null ? trainingData ['likesCount'] : '';
+                          int commentsCount = trainingData ['commentsCount'] != null ? trainingData ['commentsCount'] : '';
                           return Padding(
                             padding: const EdgeInsets.all(0.0),
                             child: Column(
@@ -595,6 +640,20 @@ Widget build(BuildContext context) {
                                               ),
                                             ],
                                           ),
+                                          SizedBox(width: 150,),
+                                          Column(
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text('Comentários',
+                                                          style: TextStyle(fontSize: 13)),
+                                                          SizedBox(width: 10,),
+                                                           Text(commentsCount.toString(),
+                                                      style: TextStyle(fontSize: 13)),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
                                        ],
                                     ),
                                 ),
@@ -619,11 +678,17 @@ Widget build(BuildContext context) {
                                                   await removeLike(likeId, postId);
                                                   setState(() {
                                                     isLikedPost[postId] = false;
+                                                   int currentLikes = trainingList.firstWhere((training) => training['postId'] == postId)['likesCount'];
+                                                    trainingList.firstWhere((training) => training['postId'] == postId)['likesCount'] = currentLikes - 1;
                                                   });
                                                 }
                                               } else {
                                                 await addLike(postId);
                                                 setState(() {
+                                                 int currentLikes = trainingList
+                                                .firstWhere((training) => training['postId'] == postId)['likesCount'];
+                                                 trainingList.firstWhere((training) => training['postId'] == postId)
+                                                ['likesCount'] = currentLikes + 1;
                                                   isLikedPost[postId] = true;
                                                 });
                                               }
@@ -642,7 +707,10 @@ Widget build(BuildContext context) {
                                               indent: 15,
                                               endIndent: 10,
                                             ),
-                                            Icon(Icons.mode_comment),
+                                           GestureDetector(
+                                            onTap: () => _navigateToCommentPage(postId),
+                                            child: Icon(Icons.mode_comment),
+                                          )
                                           ],
                                         ),
                                       ),
