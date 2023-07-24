@@ -42,6 +42,7 @@ class _FeedState extends State<Feed>{
     String searchText = '';
 
 void _navigateToChoosedPerfil(String userId) async {
+
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString('choosedPerfil', userId);
 
@@ -56,12 +57,6 @@ void _navigateToCommentPage(int postId) async {
     context,
     MaterialPageRoute(builder: (context) => Comment(postId: postId)),
   );
-  setState(() {
-       int currentComments = trainingList
-     .firstWhere((training) => training['postId'] == postId)['commentsCount'];
-      trainingList.firstWhere((training) => training['postId'] == postId)
-     ['commentsCount'] = currentComments + 1;
-  });
 
 
 }

@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:musclemate/pages/Feed_page.dart';
 import 'package:musclemate/pages/perfil_users/perfi_Users_page.dart';
 import 'package:musclemate/widgets/home/PlaceholderComments.dart';
 
@@ -16,7 +17,8 @@ import 'package:http/http.dart' as http;
 
 class Comment extends StatefulWidget {
   final int postId;
-  const Comment({Key? key, required this.postId}) : super(key: key);
+
+   Comment({Key? key, required this.postId}) : super(key: key);
 
 @override
   _CommentState createState()=> _CommentState();
@@ -30,21 +32,35 @@ class _CommentState extends State<Comment>{
   @override
   void initState() {
     super.initState();
+     fetchUserData();
     int postId = widget.postId;
     getCommentsByPost(postId);
-    fetchUserData();
+
   }
 
 void _navigateToChoosedPerfil(String userId) async {
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString('choosedPerfil', userId);
-  if(userId != userIdFix){
-
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    final userData = JwtDecoder.decode(token);
+    String loggedInUserId = (userData['sub']);
+  if (userId != loggedInUserId) {
+    prefs.setString('choosedPerfil', userId);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PerfilPageUsers()),
+    );
+  } else {
+    return;
   }
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const PerfilPageUsers()),
-  );
+}
+
+
+void _navigateToFeed() async {
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const FeedPage()),
+    );
 }
 
 List<Map<String, dynamic>> commentsList = [];
@@ -195,8 +211,6 @@ Future<void> addComment(int postId, String commentText) async {
     if (response.statusCode == 200) {
        print('Comentário feito');
 
-
-
     } else {
       if (response.statusCode == 400) {
         final error = jsonDecode(response.body)['error'];
@@ -217,15 +231,26 @@ Future<void> addComment(int postId, String commentText) async {
 Widget build(BuildContext context) {
   return Scaffold(
     appBar: AppBar(
-      title: Text('Comentários'),
-      centerTitle: true,
-      backgroundColor: Colors.black,
-    ),
+  automaticallyImplyLeading: false,
+  backgroundColor: Colors.black,
+  title: Row(
+    mainAxisAlignment: MainAxisAlignment.start,
+    children: [
+      IconButton(
+        onPressed: _navigateToFeed,
+        icon: const Icon(Icons.arrow_back),
+      ),
+      Text('Comentários'),
+    ],
+  ),
+),
+
+
     body: Column(
       children: [
         Visibility(
           visible: isLoading,
-          child: Center(), // You can show a loading indicator here
+          child: Center(),
         ),
         Visibility(
           visible: !isLoading && commentsList.isEmpty,
