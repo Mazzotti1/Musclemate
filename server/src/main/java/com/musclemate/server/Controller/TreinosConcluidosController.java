@@ -27,7 +27,6 @@ public class TreinosConcluidosController {
     @GetMapping("{userId}")
     public List<TreinosConcluidos> getAllTreinos(@PathVariable("userId") User user) {
         List<TreinosConcluidos> treinos = repository.findAllByUser(user);
-        treinos.forEach(treino -> treino.setUser(null));
         return treinos;
     }
 

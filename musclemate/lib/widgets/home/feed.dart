@@ -27,6 +27,7 @@ class _FeedState extends State<Feed>{
  @override
   void initState() {
     super.initState();
+    findMyTraining();
     findTraining();
     getLikesByUser();
     updateUser();
@@ -42,15 +43,21 @@ class _FeedState extends State<Feed>{
     bool isLoading = true;
     String searchText = '';
 
+
 void _navigateToChoosedPerfil(String userId) async {
-
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  prefs.setString('choosedPerfil', userId);
-
-  Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const PerfilPageUsers()),
-  );
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String token = prefs.getString('token')!;
+    final userData = JwtDecoder.decode(token);
+    String loggedInUserId = (userData['sub']);
+  if (userId != loggedInUserId) {
+    prefs.setString('choosedPerfil', userId);
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const PerfilPageUsers()),
+    );
+  } else {
+    return;
+  }
 }
 
 void _navigateToCommentPage(int postId) async {
@@ -98,6 +105,7 @@ void _navigateToCommentPage(int postId) async {
     int userId = trainingData['user'] != null ? trainingData['user']['id'] : '';
     int likesCount = await getLikesByPost(postId);
     int commentsCount = await getCommentsByPost(postId);
+    String fcmToken = trainingData['user'] != null ? trainingData['user']['fcmToken'] : '';
     trainingList.add({
       'postId':postId,
       'tipoDeTreino': tipoDeTreino,
@@ -110,9 +118,9 @@ void _navigateToCommentPage(int postId) async {
       'imageUrl': imageUrl,
       'id':userId,
       'likesCount':likesCount,
-      'commentsCount':commentsCount
+      'commentsCount':commentsCount,
+      'fcmToken':fcmToken,
     });
-
   }
 
       setState(() {
@@ -134,7 +142,118 @@ void _navigateToCommentPage(int postId) async {
   }
 }
 
-Future<void> addLike(int postId) async {
+  Future<void> findMyTraining() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userTokenData = JwtDecoder.decode(token);
+  String userId = (userTokenData['sub']);
+  String url = '$apiUrl/treinos/$userId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+
+       for (var trainingData in responseData) {
+    int postId = trainingData['id'];
+    int userId = trainingData['user'] != null ? trainingData['user']['id'] : '';
+    String tipoDeTreino = trainingData['tipoDeTreino'];
+    int totalDeRepeticoes = trainingData['totalDeRepeticoes'];
+    int mediaDePesoUtilizado = trainingData['mediaDePesoUtilizado'];
+    String dataDoTreino = trainingData['dataDoTreino'];
+    String tempo = trainingData['tempo'];
+    int totalDeSeries = trainingData['totalDeSeries'];
+    String imageUrl = trainingData['user'] != null ? trainingData['user']['imageUrl'] : '';
+    int likesCount = await getLikesByPost(postId);
+    int commentsCount = await getCommentsByPost(postId);
+    String userName = trainingData['user'] != null ? trainingData['user']['nome'] : '';
+        setState(() {
+        isLoading = false;
+      });
+    trainingList.add({
+      'postId':postId,
+      'id':userId,
+      'tipoDeTreino': tipoDeTreino,
+      'totalDeRepeticoes': totalDeRepeticoes,
+      'mediaDePesoUtilizado': mediaDePesoUtilizado,
+      'dataDoTreino': dataDoTreino,
+      'tempo': tempo,
+      'totalDeSeries': totalDeSeries,
+      'imageUrl': imageUrl,
+      'likesCount':likesCount,
+      'commentsCount':commentsCount,
+      'nome': userName,
+    });
+       }
+
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
+Future<void> likeNotification(String fcmToken) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? serverKey = dotenv.env['FIREBASE_SERVER_KEY'];
+
+    String token = prefs.getString('token')!;
+    final userData = JwtDecoder.decode(token);
+    String userIdLiker = (userData['sub']);
+
+  Map<String, dynamic> notificationData = {
+    'to': fcmToken,
+    'notification': {
+      'title': 'Novo Like!',
+      'body': 'Você tem um novo like no seu treino!',
+    },
+    'data': {
+      'type': 'like_notification',
+      'Liker_id': userIdLiker,
+    },
+  };
+
+  try {
+    final response = await http.post(
+      Uri.parse('https://fcm.googleapis.com/fcm/send'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'key=$serverKey',
+      },
+      body: jsonEncode(notificationData),
+    );
+
+    if (response.statusCode == 200) {
+      print('Notificação push enviada com sucesso!');
+      print(fcmToken);
+    } else {
+      print('Falha ao enviar a notificação push. Código de resposta: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Erro ao enviar a notificação push: $e');
+  }
+}
+
+Future<void> addLike(int postId, String fcmToken) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.getString('token')!;
 
@@ -161,7 +280,7 @@ Future<void> addLike(int postId) async {
         isLikedPost[postId] = true;
         likedIds[postId] = likeId;
       });
-
+      likeNotification(fcmToken);
     } else {
       if (response.statusCode == 400) {
         final error = jsonDecode(response.body)['error'];
@@ -454,6 +573,7 @@ Widget build(BuildContext context) {
                           int postId = trainingData ['postId'] != null ? trainingData ['postId'] : '';
                           int likesCount = trainingData ['likesCount'] != null ? trainingData ['likesCount'] : '';
                           int commentsCount = trainingData ['commentsCount'] != null ? trainingData ['commentsCount'] : '';
+                          String fcmToken = trainingData ['fcmToken'] != null ? trainingData ['fcmToken'] : '';
                           return Padding(
                             padding: const EdgeInsets.all(0.0),
                             child: Column(
@@ -682,7 +802,7 @@ Widget build(BuildContext context) {
                                                   });
                                                 }
                                               } else {
-                                                await addLike(postId);
+                                                await addLike(postId, fcmToken);
                                                 setState(() {
                                                  int currentLikes = trainingList
                                                 .firstWhere((training) => training['postId'] == postId)['likesCount'];

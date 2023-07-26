@@ -4,7 +4,7 @@ import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
-import 'package:musclemate/pages/Feed_page.dart';
+import 'package:musclemate/pages/perfil/perfil_page.dart';
 import 'package:musclemate/pages/perfil_users/perfi_Users_page.dart';
 import 'package:musclemate/widgets/home/PlaceholderComments.dart';
 
@@ -15,15 +15,15 @@ import 'package:http/http.dart' as http;
 
 
 
-class Comment extends StatefulWidget {
+class CommentPerfil extends StatefulWidget {
   final int postId;
 
-   Comment({Key? key, required this.postId}) : super(key: key);
+   CommentPerfil({Key? key, required this.postId}) : super(key: key);
 
 @override
-  _CommentState createState()=> _CommentState();
+  _CommentPerfilState createState()=> _CommentPerfilState();
 }
-class _CommentState extends State<Comment>{
+class _CommentPerfilState extends State<CommentPerfil>{
 
   bool isLoading = true;
   final TextEditingController commentController = TextEditingController();
@@ -62,7 +62,7 @@ void _navigateToFeed() async {
 
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const FeedPage()),
+      MaterialPageRoute(builder: (context) => const PerfilPage()),
     );
 }
 
