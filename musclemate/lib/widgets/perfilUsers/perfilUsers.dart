@@ -17,9 +17,6 @@ import '../../pages/perfil_users/perfilUsers_activitys_page.dart';
 import '../../pages/perfil_users/perfilUsers_statistic_page.dart';
 
 
-
-
-
 class PerfilUsers extends StatefulWidget {
   const PerfilUsers({Key? key}) : super(key: key);
 
@@ -61,7 +58,7 @@ class _PerfilUsersState extends State<PerfilUsers>{
     String bio = '';
     List<Map<String, dynamic>> trainingList = [];
     String lastTrainingDate = '';
-
+    String fcmToken = '';
 
      @override
   void initState() {
@@ -71,6 +68,8 @@ class _PerfilUsersState extends State<PerfilUsers>{
     findFollowers();
     findLastDate();
     getFolloweds();
+
+
   }
 
 
@@ -101,10 +100,11 @@ class _PerfilUsersState extends State<PerfilUsers>{
         userId =  userData['sub'] ?? '';
         imageUrlController = userData['imageUrl'] ?? '';
         bio = userData['bio'] ?? '';
+        fcmToken =userData['fcmToken'] ?? '';
       });
-
+    print(fcmToken);
       } else {
-        print('${response.statusCode}');
+
       }
     } catch (e) {
       print('$e');
@@ -232,10 +232,49 @@ Future<void> findFollowers() async {
   }
 }
 
+Future<void> followNotification() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? serverKey = dotenv.env['FIREBASE_SERVER_KEY'];
+
+    String token = prefs.getString('token')!;
+    final userData = JwtDecoder.decode(token);
+    String userIdFollower = (userData['sub']);
+
+  Map<String, dynamic> notificationData = {
+    'to': fcmToken,
+    'notification': {
+      'title': 'Novo seguidor',
+      'body': 'Você tem um novo seguidor!',
+    },
+    'data': {
+      'type': 'follow_notification',
+      'follower_id': userIdFollower,
+    },
+  };
+
+  try {
+    final response = await http.post(
+      Uri.parse('https://fcm.googleapis.com/fcm/send'),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'key=$serverKey',
+      },
+      body: jsonEncode(notificationData),
+    );
+
+    if (response.statusCode == 200) {
+      print('Notificação push enviada com sucesso!');
+    } else {
+      print('Falha ao enviar a notificação push. Código de resposta: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Erro ao enviar a notificação push: $e');
+  }
+}
+
   Follow() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.getString('token')!;
-
   await dotenv.load(fileName: ".env");
 
   String? apiUrl = dotenv.env['API_URL'];
@@ -248,11 +287,13 @@ Future<void> findFollowers() async {
 Map<String, dynamic> bodyData = {
   'follower': {'id': int.parse(userId)},
   'followed': {'id': int.parse(userPerfilId!)},
+
 };
 
 Map<String, dynamic> jsonData = {
   'follower': {'id': bodyData['follower']['id']},
   'followed': {'id': bodyData['followed']['id']},
+
 };
 
     String jsonString = jsonEncode(jsonData);
@@ -269,8 +310,9 @@ Map<String, dynamic> jsonData = {
     if (response.statusCode == 200) {
        setState(() {
       nomesFolloweds.add(userName);
+      seguidores += 1;
     });
-
+    followNotification();
     } else {
       if (response.statusCode == 400) {
         final error = jsonDecode(response.body)['error'];
@@ -323,6 +365,7 @@ Map<String, dynamic> jsonData = {
     if (response.statusCode == 200) {
        setState(() {
       nomesFolloweds.remove(userName);
+      seguidores -= 1;
     });
 
     } else {
@@ -548,7 +591,6 @@ Widget build(BuildContext context) {
     ),
   ),
    InkWell(
-    //Função pra levar para algum lugar
     onTap: _navigateToStatistics,
      child: Column(
       children: [

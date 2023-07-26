@@ -1,6 +1,7 @@
 package com.musclemate.server.service.impl;
 
 import com.musclemate.server.Controller.RegistroIncorretoException;
+import com.musclemate.server.entity.Followers;
 import com.musclemate.server.entity.User;
 import com.musclemate.server.entity.form.UserForm;
 import com.musclemate.server.entity.form.UserUpdateForm;
@@ -158,6 +159,11 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
             user.setImageUrl(newImageUrl);
         }
 
+        String newFcmToken = formUpdate.getFcmToken();
+        if (newFcmToken != null) {
+            user.setFcmToken(newFcmToken);
+        }
+
         return repository.save(user);
     }
 
@@ -218,6 +224,8 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     public User saveUser(User user) {
         return repository.save(user);
     }
+
+
 
 }
 

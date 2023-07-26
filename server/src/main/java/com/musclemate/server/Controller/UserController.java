@@ -97,6 +97,7 @@ public class UserController {
     @PostMapping("/follow")
     public void seguirUsuario(@RequestBody Followers followers) {
         followService.seguirUsuario(followers.getFollower(), followers.getFollowed());
+
     }
 
     @DeleteMapping("/unfollow")
@@ -118,6 +119,7 @@ public class UserController {
         User user = service.get(id);
         return followService.getSeguindo(user);
     }
+
 
 
 }

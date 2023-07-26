@@ -30,6 +30,8 @@ public class Followers {
     @ManyToOne
     @JoinColumn(name = "followed_id")
     private User followed;
+
+
 }
 
 

@@ -65,5 +65,6 @@ public class User {
         this.recoveryCode = recoveryCode;
     }
 
+    private String fcmToken = "";
 }
 

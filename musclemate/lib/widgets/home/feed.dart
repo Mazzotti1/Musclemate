@@ -1,4 +1,5 @@
 
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 
@@ -28,7 +29,7 @@ class _FeedState extends State<Feed>{
     super.initState();
     findTraining();
     getLikesByUser();
-
+    updateUser();
   }
 
 
@@ -334,6 +335,42 @@ Future<int> getCommentsByPost(int postId) async {
   return 0;
 }
 
+Future<String?> getFcmToken() async {
+  FirebaseMessaging messaging = FirebaseMessaging.instance;
+  return await messaging.getToken();
+}
+
+Future<void> updateUser() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await dotenv.load(fileName: ".env");
+  String? apiUrl = dotenv.env['API_URL'];
+
+  String? fcmToken = await getFcmToken();
+  String token = prefs.getString('token')!;
+
+  final userData = JwtDecoder.decode(token);
+  String userId = (userData['sub'] ?? '');
+
+  String url = '$apiUrl/users/update/data/$userId';
+
+  try {
+    final response = await http.patch(
+      Uri.parse(url),
+      body: jsonEncode({"fcmToken": fcmToken}),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+    } else {
+      print('Erro: ${response.statusCode}');
+    }
+  } catch (e) {
+    print(e);
+  }
+}
 
 Widget build(BuildContext context) {
   initializeDateFormatting();

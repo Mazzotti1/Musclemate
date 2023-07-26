@@ -1,4 +1,4 @@
-package com.musclemate.server.Amazon;
+package com.musclemate.server.MailGun;
 
 import io.github.cdimascio.dotenv.Dotenv;
 import org.apache.http.HttpEntity;

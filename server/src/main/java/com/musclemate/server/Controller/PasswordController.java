@@ -1,6 +1,6 @@
 package com.musclemate.server.Controller;
 
-import com.musclemate.server.Amazon.EmailService;
+import com.musclemate.server.MailGun.EmailService;
 import com.musclemate.server.entity.User;
 import com.musclemate.server.service.impl.UserServiceImpl;
 
