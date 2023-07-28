@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:musclemate/pages/RecordPages/recordingTutorial.dart';
 
 import 'package:musclemate/widgets/record/recording.dart';
 import 'package:musclemate/pages/home_config/configuration_page.dart';
@@ -63,6 +64,27 @@ Future<void> clearData() async {
     );
   }
 
+void _showWelcomeDialog() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool alreadyShown = prefs.getBool('recording_dialog_shown') ?? false;
+
+  if (!alreadyShown) {
+    showDialog(
+        context: context,
+        builder: (context) => RecordingTutorial(),
+    );
+
+    prefs.setBool('recording_dialog_shown', true);
+  }
+}
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showWelcomeDialog();
+    });
+  }
 
 
   @override

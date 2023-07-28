@@ -1,10 +1,12 @@
 
 
 import 'package:flutter/material.dart';
+import 'package:musclemate/pages/perfil/perfilTutorial.dart';
 import 'package:musclemate/widgets/perfil/perfil.dart';
 
 import 'package:musclemate/pages/perfil/perfil_activitys_page.dart';
 import 'package:musclemate/pages/perfil/perfil_progress_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../home_config/configuration_page.dart';
 import '../searchPeoplePages/searchPeople_page.dart';
@@ -31,6 +33,28 @@ class _PerfilPageState extends State<PerfilPage>{
       context,
       MaterialPageRoute(builder: (context) => const SearchPeoplePage()),
     );
+  }
+
+void _showWelcomeDialog() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  bool alreadyShown = prefs.getBool('perfil_dialog_shown') ?? false;
+
+  if (!alreadyShown) {
+   showDialog(
+    context: context,
+    builder: (context) => PerfilTutorial(),
+  );
+
+    prefs.setBool('perfil_dialog_shown', true);
+  }
+}
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _showWelcomeDialog();
+    });
   }
 
 

@@ -31,8 +31,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_native_splash: ^1.2.0
-  flutter_launcher_icons: ^0.9.1
+  flutter_native_splash: ^2.3.1
+  flutter_launcher_icons: ^0.13.1
   shared_preferences: ^2.1.0
   fl_chart: ^0.62.0
   font_awesome_flutter: ^10.4.0
@@ -53,6 +53,11 @@ dependencies:
   firebase_storage: ^11.2.4
   firebase_messaging: ^14.6.5
 
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
 flutter_native_splash:
   color: "#00356a"
   image: "assets/splash.png"
@@ -60,17 +65,11 @@ flutter_native_splash:
   ios: true
 
 flutter_icons:
-  image_path: "assets/icon.png"
+  android: "ic_launcher"
   ios: true
+  image_path: "assets/icon.png"
   remove_alpha_ios: true
-  android: "launcher_icon"
   adaptive_icon_background: "#00356a"
-
-
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

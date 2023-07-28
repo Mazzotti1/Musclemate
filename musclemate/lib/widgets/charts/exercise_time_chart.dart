@@ -67,38 +67,6 @@ class _ExerciseTimeChartState extends State<ExerciseTimeChart> {
     );
   }
 
-//Arrumar a
-// Widget leftTitleWidgets(double value, TitleMeta meta) {
-//   final List<double> tempos = widget.tempos;
-//   String tempoFormatado = '';
-
-//   for (double tempo in tempos) {
-//     tempoFormatado = formatarTempoTitle(tempo);
-//   }
-
-//   final text = Text(tempoFormatado,);
-
-//   if (tempoFormatado.isNotEmpty) {
-//     return
-//        SideTitleWidget(
-//         axisSide: meta.axisSide,
-//         child: text,
-//       );
-
-//   } else {
-//     return SizedBox.shrink();
-//   }
-// }
-
-// String formatarTempoTitle(double minutos) {
-//   int horas = minutos ~/ 60;
-//   int minutosRestantes = minutos.toInt() % 60;
-
-//   String formattedHora = horas.toString().padLeft(2, '0');
-//   String formattedMinutos = minutosRestantes.toString().padLeft(2, '0');
-
-//   return "$formattedHora$formattedMinutos";
-// }
 
 Widget bottomTitleWidgetsSingle(double value, TitleMeta meta) {
   final style = TextStyle(
