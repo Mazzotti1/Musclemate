@@ -43,6 +43,7 @@ class _FeedState extends State<Feed>{
     bool isLoading = true;
     String searchText = '';
 
+    int userId = 0;
 
 void _navigateToChoosedPerfil(String userId) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -60,10 +61,10 @@ void _navigateToChoosedPerfil(String userId) async {
   }
 }
 
-void _navigateToCommentPage(int postId) async {
+void _navigateToCommentPage(int postId, int userId) async {
   Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => Comment(postId: postId)),
+    MaterialPageRoute(builder: (context) => Comment(postId: postId, userId:userId)),
   );
 
 
@@ -91,7 +92,6 @@ void _navigateToCommentPage(int postId) async {
 
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
-
      for (var trainingData in responseData) {
     int postId = trainingData['id'];
     String tipoDeTreino = trainingData['tipoDeTreino'];
@@ -212,6 +212,47 @@ void _navigateToCommentPage(int postId) async {
   }
 }
 
+Future<void> infoNotification(int userId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userData = JwtDecoder.decode(token);
+  String userNameFollowing = (userData['nome']);
+  String url = '$apiUrl/notifications/addNotification/$userId';
+
+Map<String, dynamic> jsonData = {
+  'atividade': '$userNameFollowing deu um like em sua atividade!',
+};
+
+    String jsonString = jsonEncode(jsonData);
+  try {
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+       body: jsonString
+    );
+
+    if (response.statusCode == 200) {
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
 Future<void> likeNotification(String fcmToken) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? serverKey = dotenv.env['FIREBASE_SERVER_KEY'];
@@ -253,7 +294,7 @@ Future<void> likeNotification(String fcmToken) async {
   }
 }
 
-Future<void> addLike(int postId, String fcmToken) async {
+Future<void> addLike(int postId, String fcmToken, int userId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.getString('token')!;
 
@@ -261,8 +302,8 @@ Future<void> addLike(int postId, String fcmToken) async {
 
   String? apiUrl = dotenv.env['API_URL'];
   final userTokenData = JwtDecoder.decode(token);
-  String userId = (userTokenData['sub']);
-  String url = '$apiUrl/likes/addLike/$userId/$postId';
+  String userIdMe = (userTokenData['sub']);
+  String url = '$apiUrl/likes/addLike/$userIdMe/$postId';
 
   try {
     final response = await http.post(
@@ -281,6 +322,10 @@ Future<void> addLike(int postId, String fcmToken) async {
         likedIds[postId] = likeId;
       });
       likeNotification(fcmToken);
+       infoNotification(userId);
+       setState(() {
+         userId = userId;
+       });
     } else {
       if (response.statusCode == 400) {
         final error = jsonDecode(response.body)['error'];
@@ -802,7 +847,7 @@ Widget build(BuildContext context) {
                                                   });
                                                 }
                                               } else {
-                                                await addLike(postId, fcmToken);
+                                                await addLike(postId, fcmToken, userId);
                                                 setState(() {
                                                  int currentLikes = trainingList
                                                 .firstWhere((training) => training['postId'] == postId)['likesCount'];
@@ -830,7 +875,7 @@ Widget build(BuildContext context) {
                                               endIndent: 10,
                                             ),
                                            GestureDetector(
-                                            onTap: () => _navigateToCommentPage(postId),
+                                            onTap: () => _navigateToCommentPage(postId, userId),
                                             child: Icon(Icons.mode_comment),
                                           )
                                           ],

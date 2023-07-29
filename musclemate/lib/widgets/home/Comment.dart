@@ -17,8 +17,8 @@ import 'package:http/http.dart' as http;
 
 class Comment extends StatefulWidget {
   final int postId;
-
-   Comment({Key? key, required this.postId}) : super(key: key);
+  final int userId;
+   Comment({Key? key, required this.postId, required this.userId,}) : super(key: key);
 
 @override
   _CommentState createState()=> _CommentState();
@@ -30,7 +30,6 @@ class _CommentState extends State<Comment>{
 
 
 String fcmToken = '';
-
   @override
   void initState() {
     super.initState();
@@ -138,6 +137,7 @@ Future<int> getCommentsByPost(int postId) async {
         String commentedAt = postData['commented_at'];
         int userId = postData['user'] != null ? postData['user']['id'] : '';
         String fcmToken = postData['treinoId']['user'] != null ? postData['treinoId']['user']['fcmToken'] : '';
+
     commentsList.add({
       'userName':userName,
       'imageUrl': imageUrl,
@@ -190,6 +190,46 @@ String formatCommentedAt(String commentedAt) {
   }
 }
 
+Future<void> infoNotification(int userId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userData = JwtDecoder.decode(token);
+  String userNameFollowing = (userData['nome']);
+  String url = '$apiUrl/notifications/addNotification/$userId';
+
+Map<String, dynamic> jsonData = {
+  'atividade': '$userNameFollowing comentou na sua atividade!',
+};
+
+    String jsonString = jsonEncode(jsonData);
+  try {
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+       body: jsonString
+    );
+
+    if (response.statusCode == 200) {
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
 
 Future<void> commentNotification(String fcmToken) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -223,6 +263,7 @@ Future<void> commentNotification(String fcmToken) async {
 
     if (response.statusCode == 200) {
       print('Notificação push enviada com sucesso!');
+
       print(fcmToken);
     } else {
       print('Falha ao enviar a notificação push. Código de resposta: ${response.statusCode}');
@@ -232,7 +273,7 @@ Future<void> commentNotification(String fcmToken) async {
   }
 }
 
-Future<void> addComment(int postId, String commentText, String fcmToken) async {
+Future<void> addComment(int postId, String commentText, String fcmToken, int userId) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.getString('token')!;
 
@@ -240,8 +281,8 @@ Future<void> addComment(int postId, String commentText, String fcmToken) async {
 
   String? apiUrl = dotenv.env['API_URL'];
   final userTokenData = JwtDecoder.decode(token);
-  String userId = (userTokenData['sub']);
-  String url = '$apiUrl/comments/addComment/$userId/$postId';
+  String userIdMe = (userTokenData['sub']);
+  String url = '$apiUrl/comments/addComment/$userIdMe/$postId';
 
   try {
     Map<String, dynamic> requestBody = {
@@ -267,6 +308,7 @@ Future<void> addComment(int postId, String commentText, String fcmToken) async {
       } else {
         print('Erro: ${response.statusCode}');
          commentNotification(fcmToken);
+         infoNotification(userId);
       }
     }
   } catch (e) {
@@ -328,6 +370,7 @@ Widget build(BuildContext context) {
                           String commentedAt = postData['commentedAt'];
                           int userId = postData['id'] != null ? postData['id'] : '';
                           fcmToken = postData['fcmToken'] != null ? postData['fcmToken'] : '';
+
                           return FutureBuilder<void>(
                             future: Future.delayed(Duration(milliseconds: 500)),
                             builder: (context, snapshot) {
@@ -464,8 +507,9 @@ Widget build(BuildContext context) {
                 onPressed: () async {
                   String commentText = commentController.text;
                   int postId = widget.postId;
+                  int userId = widget.userId;
                     if (commentText.isNotEmpty) {
-                     await addComment(postId, commentText, fcmToken);
+                     await addComment(postId, commentText, fcmToken, userId);
                       commentController.clear();
                     }
                   setState(() {

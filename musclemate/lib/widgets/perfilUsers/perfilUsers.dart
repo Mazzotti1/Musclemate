@@ -232,6 +232,48 @@ Future<void> findFollowers() async {
   }
 }
 
+Future<void> infoNotification() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  final userData = JwtDecoder.decode(token);
+  String? userPerfilId = prefs.getString('choosedPerfil');
+  String userNameFollowing = (userData['nome']);
+  String url = '$apiUrl/notifications/addNotification/$userPerfilId';
+
+Map<String, dynamic> jsonData = {
+  'atividade': '$userNameFollowing comecou a seguir voce!',
+};
+
+    String jsonString = jsonEncode(jsonData);
+  try {
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+       body: jsonString
+    );
+
+    if (response.statusCode == 200) {
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        setState(() {
+          print('Erro: ${response.statusCode}');
+        });
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+}
+
 Future<void> followNotification() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? serverKey = dotenv.env['FIREBASE_SERVER_KEY'];
@@ -264,6 +306,7 @@ Future<void> followNotification() async {
 
     if (response.statusCode == 200) {
       print('Notificação push enviada com sucesso!');
+      infoNotification();
     } else {
       print('Falha ao enviar a notificação push. Código de resposta: ${response.statusCode}');
     }
