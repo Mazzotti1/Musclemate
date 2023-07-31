@@ -293,7 +293,7 @@ Future<void> findFollowers() async {
 
        for (var trainingData in responseData) {
     String dataDoTreino = trainingData['dataDoTreino'];
-    // Adicione as variáveis à lista
+
     trainingList.add({
       'dataDoTreino': dataDoTreino,
     });

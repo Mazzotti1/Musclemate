@@ -13,6 +13,8 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import '../home/likesFromPost.dart';
+
 class Posts extends StatefulWidget {
   const Posts({Key? key}) : super(key: key);
 
@@ -47,6 +49,12 @@ void _navigateToCommentPage(int postId) async {
   );
 }
 
+void _navigateToLikesPage(int postId) async {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => LikesFromPost(postId: postId)),
+  );
+}
 
 
 Future<void> fetchUserData() async {
@@ -112,7 +120,13 @@ Future<void> fetchUserData() async {
        for (var trainingData in responseData) {
     int postId = trainingData['id'];
     int id = trainingData['id'];
-    String tipoDeTreino = trainingData['tipoDeTreino'];
+    var tipoDeTreino = trainingData['tipoDeTreino'];
+     if (tipoDeTreino is List) {
+      tipoDeTreino = tipoDeTreino.join(" e ");
+    } else if (tipoDeTreino is String) {
+      tipoDeTreino = tipoDeTreino.replaceAll(RegExp(r'[\[\]"]'), '');
+      tipoDeTreino = tipoDeTreino.replaceAll('\\', '');
+    }
     int totalDeRepeticoes = trainingData['totalDeRepeticoes'];
     int mediaDePesoUtilizado = trainingData['mediaDePesoUtilizado'];
     String dataDoTreino = trainingData['dataDoTreino'];
@@ -555,25 +569,38 @@ Widget build(BuildContext context) {
                                   ),
 
                                 ),
-                                SizedBox(height: 5,),
+                                SizedBox(height: 0,),
                               Container(
                                         width: double.infinity,
                                         height: 10,
                                         color: const Color.fromRGBO(240, 240, 240, 1),
                                       ),
                                 Padding(
-                                  padding: const EdgeInsets.only(left:50, top:10,),
+                                  padding: const EdgeInsets.only(left:50, top:0,),
                                   child: Row(
                                     children: [
                                         Column(
                                             children: [
                                               Row(
                                                 children: [
-                                                  Text('Curtidas',
-                                                          style: TextStyle(fontSize: 13)),
-                                                          SizedBox(width: 10,),
-                                                           Text(likesCount.toString(),
-                                                      style: TextStyle(fontSize: 13)),
+                                                 TextButton(
+                                                  onPressed: () {
+                                                   _navigateToLikesPage(postId);
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                        'Curtidas',
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                      SizedBox(width: 10,),
+                                                      Text(
+                                                        likesCount.toString(),
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
                                                 ],
                                               ),
                                             ],
@@ -583,11 +610,24 @@ Widget build(BuildContext context) {
                                             children: [
                                               Row(
                                                 children: [
-                                                  Text('Comentários',
-                                                          style: TextStyle(fontSize: 13)),
-                                                          SizedBox(width: 10,),
-                                                           Text(commentsCount.toString(),
-                                                      style: TextStyle(fontSize: 13)),
+                                                  TextButton(
+                                                  onPressed: () {
+                                                   _navigateToCommentPage(postId);
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                        'Comentários',
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                      SizedBox(width: 10,),
+                                                      Text(
+                                                        commentsCount.toString(),
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
                                                 ],
                                               ),
                                             ],
@@ -595,7 +635,7 @@ Widget build(BuildContext context) {
                                        ],
                                     ),
                                 ),
-                                const SizedBox(height: 10,),
+                                const SizedBox(height: 0,),
                                 Padding(
                                   padding: const EdgeInsets.all(0.0),
                                   child: Column(

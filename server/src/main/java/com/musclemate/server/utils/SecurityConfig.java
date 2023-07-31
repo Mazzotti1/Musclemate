@@ -29,17 +29,14 @@ import java.util.Arrays;
 
 
 @RequiredArgsConstructor
-// Faz com que quando a classe for instanciada, os atributos vão ser passados no construtor automaticamente.
 @EnableWebSecurity
-// Desabilita as configurações default do Spring Security, permitindo o desenvolvedor configurar as próprias configurações.
-@Configuration  // Indica que é uma classe de configuração.
-@Primary // Essa vai ser a implementação a ser carregada caso tenha mais de 1.
-public class SecurityConfig implements SecurityConfigurations { // As classes de Security só são chamadas quando a aplicação sobe!
-    // Nas proximas requisições, essa classe não é chamada novamente, pois as configurações já estão salvas em memória.
+@Configuration
+@Primary
+public class SecurityConfig implements SecurityConfigurations {
 
-    private final JwtUtils jwtUtils; // Classe que contém ações relacionadas á um token: gerar um token, validar um token, recuperar o subject do token...
+    private final JwtUtils jwtUtils;
 
-    private final UserRepository userRepository; // Repositório da entidade Usuário.
+    private final UserRepository userRepository;
 
     @Override
     @Bean
@@ -49,7 +46,7 @@ public class SecurityConfig implements SecurityConfigurations { // As classes de
 
     @Override
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {  // Autentica o usuário.
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
@@ -73,7 +70,7 @@ public class SecurityConfig implements SecurityConfigurations { // As classes de
 
     @Override
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {           // Método relacionado á CORS, integração com um meio externo.
+    public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration().applyPermitDefaultValues();
         configuration.setAllowedMethods(Arrays.asList("POST", "GET", "PUT", "DELETE", "OPTIONS"));
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -125,6 +125,12 @@ String formatCommentedAt(String time) {
 
 @override
 Widget build(BuildContext context) {
+  if (notificationList.isEmpty) {
+
+    return Center(
+      child: Text('Você ainda não tem nenhuma notificação!', textAlign: TextAlign.center, style: TextStyle(fontSize: 24),),
+    );
+  } else {
   return ListView.builder(
    itemCount: notificationList.length,
     itemBuilder: (context, index) {
@@ -220,5 +226,6 @@ Widget build(BuildContext context) {
       );
     }
   );
+  }
 }
 }

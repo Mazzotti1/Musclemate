@@ -7,6 +7,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:image_picker/image_picker.dart';
+
+import 'dart:io';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class PerfilEdit extends StatefulWidget {
   const PerfilEdit({Key? key}) : super(key: key);
@@ -48,7 +52,9 @@ class _PerfilEditState extends State<PerfilEdit>{
    if (pesoController.text.isNotEmpty) {
     modifiedFields['peso'] = capitalizeFirstLetter(pesoController.text);
   }
-
+    if (imageUrlController.isNotEmpty) {
+    modifiedFields['imageUrl'] = imageUrlController;
+  }
 
   return modifiedFields;
 }
@@ -100,6 +106,10 @@ Future<void> fetchUserData() async {
         biografiaController.text = userData['bio'] ?? '';
         dataNascimentoController.text = userData['dataDeNascimento'] ?? '';
         pesoController.text = userData['peso'] ?? '';
+
+        userName  =  userData['nome'] ?? '';
+        userId =  userData['sub'] ?? '';
+        imageUrlController = userData['imageUrl'] ?? '';
       });
     } else {
         setState(() {
@@ -113,7 +123,7 @@ Future<void> fetchUserData() async {
   }
 }
 
-Future<void> updateUser(String id) async {
+Future<void> updateUser() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await dotenv.load(fileName: ".env");
   String? apiUrl = dotenv.env['API_URL'];
@@ -155,19 +165,65 @@ Future<void> updateUser(String id) async {
   }
 }
 
+String imageUrlController = '';
+String userName = '';
+String id = '';
+Future<void> selecionarImagem(String id, String userName) async {
+  final picker = ImagePicker();
+  final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
+  if (pickedFile != null) {
+    File imageFile = File(pickedFile.path);
+
+   final storage = FirebaseStorage.instance;
+final storageRef = storage.ref().child('imagePerfil/$userName/$id/${DateTime.now().millisecondsSinceEpoch}_${pickedFile.path.split('/').last}');
+
+    final uploadTask = storageRef.putFile(imageFile);
+
+    uploadTask.snapshotEvents.listen((TaskSnapshot snapshot) {
+      print('Upload em andamento: ${snapshot.bytesTransferred}/${snapshot.totalBytes}');
+    }, onError: (Object e) {
+      print('Erro durante o upload: $e');
+    });
+
+    final TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
+
+    final String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+    imageUrlController = downloadUrl;
+      setState(() {
+    imageUrlController = downloadUrl;
+  });
+    print('Imagem salva com sucesso: $downloadUrl');
+    await updateUser();
+  }
+}
 
 @override
 Widget build(BuildContext context) {
   return SingleChildScrollView(
     child: Column(
       children: [
-        const Padding(
+         Padding(
           padding: EdgeInsets.only(top:40.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.person_outline_rounded, size: 90),
+              GestureDetector(
+                onTap: () {
+                  selecionarImagem(id, userName);
+                },
+                  child: imageUrlController.isNotEmpty
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(50.0),
+                        child: Image.network(
+                          imageUrlController,
+                          fit: BoxFit.cover,
+                          width: 80,
+                          height: 80,
+                        ),
+                      )
+                    : Icon(Icons.person_outline_rounded, size: 50),
+              ),
               SizedBox(width: 20),
             ],
           ),
@@ -182,7 +238,7 @@ Widget build(BuildContext context) {
         ),
       ),
 
-        const SizedBox(height: 10), // Espaço entre o ícone e a nova linha
+        const SizedBox(height: 10),
         Row(
            mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -265,7 +321,7 @@ Widget build(BuildContext context) {
                  const Padding(
                    padding: EdgeInsets.only(right:130.0),
                    child: Text(
-                        'Nome',
+                        'Cidade',
                         style: TextStyle(color: Colors.black54),
                       ),
                  ),
@@ -400,7 +456,7 @@ Widget build(BuildContext context) {
                     controller: dataNascimentoController,
                     decoration: const InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Data de nascimento',
+                      hintText: 'Dia/mês/ano',
                       contentPadding: EdgeInsets.symmetric(vertical: 10.0),
                     ),
                     textAlign: TextAlign.center,
@@ -497,9 +553,7 @@ Widget build(BuildContext context) {
               SharedPreferences prefs = await SharedPreferences.getInstance();
               String? token = prefs.getString('token');
               if (token != null) {
-                final userData = JwtDecoder.decode(token);
-                String userId = (userData['sub'] ?? '');
-                updateUser(userId);
+                updateUser();
               }
             },
             style: ButtonStyle(

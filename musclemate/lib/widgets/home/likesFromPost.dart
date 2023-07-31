@@ -167,7 +167,7 @@ Widget build(BuildContext context) {
           child: Expanded(
             child: Center(
               child: Text(
-                'Nenhum comentário disponível ainda.',
+                'Nenhuma curtida ainda.',
                 style: TextStyle(fontSize: 20),
               ),
             ),

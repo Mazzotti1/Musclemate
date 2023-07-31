@@ -23,38 +23,33 @@ import static org.aspectj.weaver.tools.cache.SimpleCacheFactory.path;
 @AllArgsConstructor
 public class AuthenticationJWTFilter extends OncePerRequestFilter {
 
-    // Quando a aplicação subir, essa classe vai ser chamada antes do spring security.
-    // Nas proximas requisições , o spring security não vai ser chamado mais, pois as informações já serão salvas em memória,
-    // porém, esse filtro sera chamado em todas as requisições para recuperar o token, autenticar se tiver necessidade...
-
-    private JwtUtils jwtUtils; // Dependencia tokenService
-    private UserRepository userRepository; // Dependencia userRepository
+    private JwtUtils jwtUtils;
+    private UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // Método faz algumas ações, depois disso, o fluxo normal segue, a requisição continua para onde deveria.
 
-        String tokenJWT = recoverToken(request); // É recuperado o token da request.
+        String tokenJWT = recoverToken(request);
 
-        if (tokenJWT != null) { // Se o token for diferente de null
+        if (tokenJWT != null) {
 
-            User user = recoverUser(tokenJWT);  // É recuperado o usuário  associado ao token
+            User user = recoverUser(tokenJWT);
 
             Authentication authentication = new UsernamePasswordAuthenticationToken(user, null, null);
-            SecurityContextHolder.getContext().setAuthentication(authentication); // A autenticação é feita.
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
         }
 
-        filterChain.doFilter(request, response); // Essa linha diz que a requisição irá continuar...
+        filterChain.doFilter(request, response);
     }
 
-    private User recoverUser(String tokenJWT) {  // Método  para recuperar o usuario logado
-        String subject = jwtUtils.getSubject(tokenJWT); // É recuperado o sujeito do token, no caso, o id
-        User user = userRepository.findById(Long.valueOf(subject)).get(); // Recupera o usuário relacionado com esse id.
+    private User recoverUser(String tokenJWT) {
+        String subject = jwtUtils.getSubject(tokenJWT);
+        User user = userRepository.findById(Long.valueOf(subject)).get();
         return user;
     }
 
-    private String recoverToken(HttpServletRequest request) { // Método recupera o token passado no header da request.
+    private String recoverToken(HttpServletRequest request) {
         String authorizationHeader = request.getHeader("Authorization");
         if (authorizationHeader != null) {
             return authorizationHeader.replace("Bearer ", "");

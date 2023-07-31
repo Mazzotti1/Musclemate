@@ -9,6 +9,8 @@ public interface IExerciciosService {
 
     List<String> getAllGroupNames();
 
+
     Exercicios findByGrupo(String grupoMuscular);
+
     List<Exercicios> getAll(String grupoMuscular);
 }

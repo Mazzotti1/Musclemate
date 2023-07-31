@@ -10,7 +10,6 @@ import java.util.List;
 
 @Repository
 public interface TreinosConcluidosRepository extends JpaRepository<TreinosConcluidos, Long> {
-    List<TreinosConcluidos> findByDataDoTreino(LocalDate dataDoTreino);
 
     List<TreinosConcluidos> findAllTreinosById(String usuario_id);
 

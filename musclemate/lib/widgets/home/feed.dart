@@ -100,7 +100,12 @@ void _navigateToLikesPage(int postId) async {
       final responseData = jsonDecode(response.body);
      for (var trainingData in responseData) {
     int postId = trainingData['id'];
-    String tipoDeTreino = trainingData['tipoDeTreino'];
+
+    var tipoDeTreino = trainingData['tipoDeTreino'];
+   if (tipoDeTreino is String) {
+      tipoDeTreino = tipoDeTreino.replaceAll(RegExp(r'[\[\]"]'), '');
+      tipoDeTreino = tipoDeTreino.replaceAll('\\', '');
+    }
     int totalDeRepeticoes = trainingData['totalDeRepeticoes'];
     int mediaDePesoUtilizado = trainingData['mediaDePesoUtilizado'];
     String dataDoTreino = trainingData['dataDoTreino'];
@@ -177,7 +182,12 @@ void _navigateToLikesPage(int postId) async {
        for (var trainingData in responseData) {
     int postId = trainingData['id'];
     int userId = trainingData['user'] != null ? trainingData['user']['id'] : '';
-    String tipoDeTreino = trainingData['tipoDeTreino'];
+    var tipoDeTreino = trainingData['tipoDeTreino'];
+     if (tipoDeTreino is String) {
+      tipoDeTreino = tipoDeTreino.replaceAll(RegExp(r'[\[\]"]'), '');
+      tipoDeTreino = tipoDeTreino.replaceAll('\\', '');
+    }
+    print(tipoDeTreino);
     int totalDeRepeticoes = trainingData['totalDeRepeticoes'];
     int mediaDePesoUtilizado = trainingData['mediaDePesoUtilizado'];
     String dataDoTreino = trainingData['dataDoTreino'];
@@ -533,7 +543,9 @@ Future<void> updateUser() async {
   try {
     final response = await http.patch(
       Uri.parse(url),
-      body: jsonEncode({"fcmToken": fcmToken}),
+      body: jsonEncode(
+        {"fcmToken": fcmToken}
+        ),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer $token',
@@ -548,6 +560,7 @@ Future<void> updateUser() async {
     print(e);
   }
 }
+
 
 Widget build(BuildContext context) {
   initializeDateFormatting();

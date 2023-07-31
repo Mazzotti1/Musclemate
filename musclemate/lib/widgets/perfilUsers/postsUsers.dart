@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:musclemate/widgets/home/PlaceholderPost.dart';
+import 'package:musclemate/widgets/home/likesFromPost.dart';
+import 'package:musclemate/widgets/perfil/CommentPerfil.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -35,6 +37,20 @@ class _PostsUsersState extends State<PostsUsers>{
 List<Map<String, dynamic>> trainingList = [];
 String searchText = '';
 bool isLoading = true;
+
+void _navigateToCommentPage(int postId) async {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => CommentPerfil(postId: postId)),
+  );
+}
+
+void _navigateToLikesPage(int postId) async {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => LikesFromPost(postId: postId)),
+  );
+}
 
 Future<void> fetchUserData() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -96,18 +112,27 @@ Future<void> fetchUserData() async {
 
        for (var trainingData in responseData) {
     int id = trainingData['id'];
-    String tipoDeTreino = trainingData['tipoDeTreino'];
+    int postId = trainingData['id'];
+    var tipoDeTreino = trainingData['tipoDeTreino'];
+     if (tipoDeTreino is List) {
+      tipoDeTreino = tipoDeTreino.join(" e ");
+    } else if (tipoDeTreino is String) {
+      tipoDeTreino = tipoDeTreino.replaceAll(RegExp(r'[\[\]"]'), '');
+      tipoDeTreino = tipoDeTreino.replaceAll('\\', '');
+    }
     int totalDeRepeticoes = trainingData['totalDeRepeticoes'];
     int mediaDePesoUtilizado = trainingData['mediaDePesoUtilizado'];
     String dataDoTreino = trainingData['dataDoTreino'];
     String tempo = trainingData['tempo'];
     int totalDeSeries = trainingData['totalDeSeries'];
-
+     int likesCount = await getLikesByPost(postId);
+    int commentsCount = await getCommentsByPost(postId);
         setState(() {
         isLoading = false;
       });
     // Adicione as variáveis à lista
     trainingList.add({
+      'postId':postId,
       'id': id,
       'tipoDeTreino': tipoDeTreino,
       'totalDeRepeticoes': totalDeRepeticoes,
@@ -115,6 +140,9 @@ Future<void> fetchUserData() async {
       'dataDoTreino': dataDoTreino,
       'tempo': tempo,
       'totalDeSeries': totalDeSeries,
+      'likesCount':likesCount,
+      'commentsCount':commentsCount,
+
     });
        }
 
@@ -131,6 +159,76 @@ Future<void> fetchUserData() async {
   } catch (e) {
     print('Erro: $e');
   }
+}
+
+Future<int> getLikesByPost(int postId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  String url = '$apiUrl/likes/treino/$postId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      return responseData.length;
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        print('Erro: ${response.statusCode}');
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+  return 0;
+}
+
+Future<int> getCommentsByPost(int postId) async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String token = prefs.getString('token')!;
+
+  await dotenv.load(fileName: ".env");
+
+  String? apiUrl = dotenv.env['API_URL'];
+  String url = '$apiUrl/comments/treino/$postId';
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final responseData = jsonDecode(response.body);
+      return responseData.length;
+    } else {
+      if (response.statusCode == 400) {
+        final error = jsonDecode(response.body)['error'];
+        print('Erro: $error');
+      } else {
+        print('Erro: ${response.statusCode}');
+      }
+    }
+  } catch (e) {
+    print('Erro: $e');
+  }
+  return 0;
 }
 
 @override
@@ -243,7 +341,9 @@ Widget build(BuildContext context) {
 
       String tempo = trainingData['tempo'];
       int totalDeSeries = trainingData['totalDeSeries'];
-
+      int likesCount = trainingData ['likesCount'] != null ? trainingData ['likesCount'] : 0;
+      int commentsCount = trainingData ['commentsCount'] != null ? trainingData ['commentsCount'] : 0;
+      int postId = trainingData ['postId'] != null ? trainingData ['postId'] : '';
       if (searchText.isNotEmpty &&
     !dataDoTreino.toLowerCase().contains(searchText.toLowerCase()) &&
     !dataFormatada.toLowerCase().contains(searchText.toLowerCase())) {
@@ -412,8 +512,72 @@ Widget build(BuildContext context) {
                 ),
               ),
             ),
-
-            const SizedBox(height: 15,),
+             Container(
+                width: double.infinity,
+                height: 10,
+                color: const Color.fromRGBO(240, 240, 240, 1),
+              ),
+                             Padding(
+                                  padding: const EdgeInsets.only(left:50, top:0,),
+                                  child: Row(
+                                    children: [
+                                        Column(
+                                            children: [
+                                              Row(
+                                                children: [
+                                                 TextButton(
+                                                  onPressed: () {
+                                                   _navigateToLikesPage(postId);
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                        'Curtidas',
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                      SizedBox(width: 10,),
+                                                      Text(
+                                                        likesCount.toString(),
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(width: 150,),
+                                          Column(
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  TextButton(
+                                                  onPressed: () {
+                                                   _navigateToCommentPage(postId);
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                        'Comentários',
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                      SizedBox(width: 10,),
+                                                      Text(
+                                                        commentsCount.toString(),
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                       ],
+                                    ),
+                                ),
+            const SizedBox(height: 0,),
             Padding(
               padding: const EdgeInsets.all(0.0),
               child: Column(
