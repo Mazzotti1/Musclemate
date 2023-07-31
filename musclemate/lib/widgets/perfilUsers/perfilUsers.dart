@@ -59,7 +59,7 @@ class _PerfilUsersState extends State<PerfilUsers>{
     List<Map<String, dynamic>> trainingList = [];
     String lastTrainingDate = '';
     String fcmToken = '';
-
+    bool followNotificationUser = true;
      @override
   void initState() {
     super.initState();
@@ -101,8 +101,9 @@ class _PerfilUsersState extends State<PerfilUsers>{
         imageUrlController = userData['imageUrl'] ?? '';
         bio = userData['bio'] ?? '';
         fcmToken =userData['fcmToken'] ?? '';
+        followNotificationUser = userData['followNotification'] ?? '';
+
       });
-    print(fcmToken);
       } else {
 
       }
@@ -306,7 +307,7 @@ Future<void> followNotification() async {
 
     if (response.statusCode == 200) {
       print('Notificação push enviada com sucesso!');
-      infoNotification();
+
     } else {
       print('Falha ao enviar a notificação push. Código de resposta: ${response.statusCode}');
     }
@@ -314,6 +315,7 @@ Future<void> followNotification() async {
     print('Erro ao enviar a notificação push: $e');
   }
 }
+
 
   Follow() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -355,7 +357,12 @@ Map<String, dynamic> jsonData = {
       nomesFolloweds.add(userName);
       seguidores += 1;
     });
-    followNotification();
+
+    if (followNotificationUser == true) {
+       followNotification();
+    }
+
+     infoNotification();
     } else {
       if (response.statusCode == 400) {
         final error = jsonDecode(response.body)['error'];

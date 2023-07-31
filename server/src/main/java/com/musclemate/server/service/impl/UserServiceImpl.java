@@ -163,6 +163,20 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
         if (newFcmToken != null) {
             user.setFcmToken(newFcmToken);
         }
+        Boolean newLikeNotification = formUpdate.getLikeNotification();
+        if (newLikeNotification != null) {
+            user.setLikeNotification(newLikeNotification);
+        }
+
+        Boolean newCommentNotification = formUpdate.getCommentNotification();
+        if (newCommentNotification != null) {
+            user.setCommentNotification(newCommentNotification);
+        }
+
+        Boolean newFollowNotification = formUpdate.getFollowNotification();
+        if (newFollowNotification != null) {
+            user.setFollowNotification(newFollowNotification);
+        }
 
         return repository.save(user);
     }

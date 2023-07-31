@@ -10,6 +10,7 @@ import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:musclemate/pages/perfil_users/perfi_Users_page.dart';
 import 'package:musclemate/widgets/home/Comment.dart';
 import 'package:musclemate/widgets/home/PlaceholderPost.dart';
+import 'package:musclemate/widgets/home/likesFromPost.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -66,8 +67,13 @@ void _navigateToCommentPage(int postId, int userId) async {
     context,
     MaterialPageRoute(builder: (context) => Comment(postId: postId, userId:userId)),
   );
+}
 
-
+void _navigateToLikesPage(int postId) async {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => LikesFromPost(postId: postId)),
+  );
 }
 
   Future<void> findTraining() async {
@@ -106,6 +112,8 @@ void _navigateToCommentPage(int postId, int userId) async {
     int likesCount = await getLikesByPost(postId);
     int commentsCount = await getCommentsByPost(postId);
     String fcmToken = trainingData['user'] != null ? trainingData['user']['fcmToken'] : '';
+    bool likeNotification = trainingData['user'] != null ? trainingData['user']['likeNotification'] : false;
+
     trainingList.add({
       'postId':postId,
       'tipoDeTreino': tipoDeTreino,
@@ -120,6 +128,7 @@ void _navigateToCommentPage(int postId, int userId) async {
       'likesCount':likesCount,
       'commentsCount':commentsCount,
       'fcmToken':fcmToken,
+      'likeNotification':likeNotification,
     });
   }
 
@@ -294,7 +303,7 @@ Future<void> likeNotification(String fcmToken) async {
   }
 }
 
-Future<void> addLike(int postId, String fcmToken, int userId) async {
+Future<void> addLike(int postId, String fcmToken, int userId, bool likeNotificationUser) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.getString('token')!;
 
@@ -321,7 +330,11 @@ Future<void> addLike(int postId, String fcmToken, int userId) async {
         isLikedPost[postId] = true;
         likedIds[postId] = likeId;
       });
-      likeNotification(fcmToken);
+
+      if (likeNotificationUser == true) {
+        likeNotification(fcmToken);
+      }
+
        infoNotification(userId);
        setState(() {
          userId = userId;
@@ -619,6 +632,7 @@ Widget build(BuildContext context) {
                           int likesCount = trainingData ['likesCount'] != null ? trainingData ['likesCount'] : '';
                           int commentsCount = trainingData ['commentsCount'] != null ? trainingData ['commentsCount'] : '';
                           String fcmToken = trainingData ['fcmToken'] != null ? trainingData ['fcmToken'] : '';
+                          bool likeNotificationUser = trainingData['likeNotification'] != null ? trainingData['likeNotification'] : false ;
                           return Padding(
                             padding: const EdgeInsets.all(0.0),
                             child: Column(
@@ -781,39 +795,65 @@ Widget build(BuildContext context) {
                                   ),
 
                                 ),
-                                SizedBox(height: 5,),
+                                SizedBox(height: 10,),
                               Container(
                                         width: double.infinity,
                                         height: 10,
                                         color: const Color.fromRGBO(240, 240, 240, 1),
                                       ),
                                 Padding(
-                                  padding: const EdgeInsets.only(left:50, top:10,),
+                                  padding: const EdgeInsets.only(left:50, top:0,),
                                   child: Row(
                                     children: [
                                         Column(
                                             children: [
                                               Row(
                                                 children: [
-                                                  Text('Curtidas',
-                                                          style: TextStyle(fontSize: 13)),
-                                                          SizedBox(width: 10,),
-                                                           Text(likesCount.toString(),
-                                                      style: TextStyle(fontSize: 13)),
+                                             TextButton(
+                                                  onPressed: () {
+                                                   _navigateToLikesPage(postId);
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                        'Curtidas',
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                      SizedBox(width: 10,),
+                                                      Text(
+                                                        likesCount.toString(),
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
                                                 ],
                                               ),
                                             ],
                                           ),
-                                          SizedBox(width: 150,),
+                                          SizedBox(width: 130,),
                                           Column(
                                             children: [
                                               Row(
                                                 children: [
-                                                  Text('Comentários',
-                                                          style: TextStyle(fontSize: 13)),
-                                                          SizedBox(width: 10,),
-                                                           Text(commentsCount.toString(),
-                                                      style: TextStyle(fontSize: 13)),
+                                                  TextButton(
+                                                  onPressed: () {
+                                                   _navigateToCommentPage(postId, userId);
+                                                  },
+                                                  child: Row(
+                                                    children: [
+                                                      Text(
+                                                        'Comentários',
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                      SizedBox(width: 10,),
+                                                      Text(
+                                                        commentsCount.toString(),
+                                                        style: TextStyle(fontSize: 13, color: Colors.black),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                )
                                                 ],
                                               ),
                                             ],
@@ -821,7 +861,7 @@ Widget build(BuildContext context) {
                                        ],
                                     ),
                                 ),
-                                const SizedBox(height: 10,),
+                                const SizedBox(height: 0,),
                                 Padding(
                                   padding: const EdgeInsets.all(0.0),
                                   child: Column(
@@ -847,7 +887,7 @@ Widget build(BuildContext context) {
                                                   });
                                                 }
                                               } else {
-                                                await addLike(postId, fcmToken, userId);
+                                                await addLike(postId, fcmToken, userId, likeNotificationUser);
                                                 setState(() {
                                                  int currentLikes = trainingList
                                                 .firstWhere((training) => training['postId'] == postId)['likesCount'];

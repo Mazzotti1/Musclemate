@@ -51,6 +51,10 @@ public class UserUpdateForm {
         return imageUrl;
     }
 
+    private boolean likeNotification;
+    private boolean commentNotification;
+    private boolean followNotification;
+
     private String fcmToken;
 
     public String getFcmToken() {
@@ -58,5 +62,29 @@ public class UserUpdateForm {
     }
     public void setFcmToken(String fcmToken) {
         this.fcmToken = fcmToken;
+    }
+
+    public boolean isLikeNotification() {
+        return likeNotification;
+    }
+
+    public boolean isCommentNotification() {
+        return commentNotification;
+    }
+
+    public boolean isFollowNotification() {
+        return followNotification;
+    }
+
+    public Boolean getLikeNotification() {
+        return likeNotification;
+    }
+
+    public Boolean getCommentNotification() {
+        return commentNotification;
+    }
+
+    public Boolean getFollowNotification() {
+        return followNotification;
     }
 }

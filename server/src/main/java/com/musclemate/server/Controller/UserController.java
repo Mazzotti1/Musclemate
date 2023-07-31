@@ -120,6 +120,25 @@ public class UserController {
         return followService.getSeguindo(user);
     }
 
+    @PatchMapping("/update/notifications/{id}")
+    public ResponseEntity<User> updateUserNotifications(@PathVariable Long id, @RequestBody UserUpdateForm updateForm) {
+        try {
+            User user = service.get(id);
+            if (user == null) {
+                return ResponseEntity.notFound().build();
+            }
+
+            user.setLikeNotification(updateForm.isLikeNotification());
+            user.setCommentNotification(updateForm.isCommentNotification());
+            user.setFollowNotification(updateForm.isFollowNotification());
+
+            User updatedUser = service.updateUserData(id, updateForm);
+
+            return ResponseEntity.ok(updatedUser);
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
 
 
 }

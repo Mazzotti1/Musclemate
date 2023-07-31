@@ -28,7 +28,7 @@ class _CommentState extends State<Comment>{
   bool isLoading = true;
   final TextEditingController commentController = TextEditingController();
 
-
+bool commentNotificationUser = true;
 String fcmToken = '';
   @override
   void initState() {
@@ -36,8 +36,9 @@ String fcmToken = '';
      fetchUserData();
     int postId = widget.postId;
     getCommentsByPost(postId);
-
   }
+
+
 
 
 void _navigateToChoosedPerfil(String userId) async {
@@ -137,6 +138,7 @@ Future<int> getCommentsByPost(int postId) async {
         String commentedAt = postData['commented_at'];
         int userId = postData['user'] != null ? postData['user']['id'] : '';
         String fcmToken = postData['treinoId']['user'] != null ? postData['treinoId']['user']['fcmToken'] : '';
+        bool commentNotificationUser = postData['treinoId']['user'] != null ? postData['treinoId']['user']['commentNotification'] : false;
 
     commentsList.add({
       'userName':userName,
@@ -145,6 +147,7 @@ Future<int> getCommentsByPost(int postId) async {
       'commentedAt': commentedAt,
       'id':userId,
       'fcmToken':fcmToken,
+      'commentNotification':commentNotificationUser,
     });
   }
     setState(() {
@@ -273,7 +276,7 @@ Future<void> commentNotification(String fcmToken) async {
   }
 }
 
-Future<void> addComment(int postId, String commentText, String fcmToken, int userId) async {
+Future<void> addComment(int postId, String commentText, String fcmToken, int userId, bool commentNotificationUser) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String token = prefs.getString('token')!;
 
@@ -307,7 +310,9 @@ Future<void> addComment(int postId, String commentText, String fcmToken, int use
         print('Erro: $error');
       } else {
         print('Erro: ${response.statusCode}');
+    if (commentNotificationUser == true) {
          commentNotification(fcmToken);
+    }
          infoNotification(userId);
       }
     }
@@ -316,8 +321,6 @@ Future<void> addComment(int postId, String commentText, String fcmToken, int use
 
   }
 }
-
-
 
 
  @override
@@ -370,7 +373,7 @@ Widget build(BuildContext context) {
                           String commentedAt = postData['commentedAt'];
                           int userId = postData['id'] != null ? postData['id'] : '';
                           fcmToken = postData['fcmToken'] != null ? postData['fcmToken'] : '';
-
+                           commentNotificationUser = postData['commentNotification'] != null ? postData['commentNotification']: false ;
                           return FutureBuilder<void>(
                             future: Future.delayed(Duration(milliseconds: 500)),
                             builder: (context, snapshot) {
@@ -509,7 +512,7 @@ Widget build(BuildContext context) {
                   int postId = widget.postId;
                   int userId = widget.userId;
                     if (commentText.isNotEmpty) {
-                     await addComment(postId, commentText, fcmToken, userId);
+                     await addComment(postId, commentText, fcmToken, userId, commentNotificationUser);
                       commentController.clear();
                     }
                   setState(() {

@@ -66,5 +66,9 @@ public class User {
     }
 
     private String fcmToken = "";
+
+    private boolean likeNotification = true;
+    private boolean commentNotification = true;
+    private boolean followNotification = true;
 }
 
