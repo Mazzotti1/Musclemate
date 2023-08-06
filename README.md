@@ -98,7 +98,7 @@ Para garantir a melhor experiência de usuário possível, o aplicativo foi dese
 </table>
 <table>
     <td>
-        <a href="https://github.com/Mazzotti1/BarberCutApp/blob/main/LICENSE">Licence</a>
+        <a href="https://github.com/Mazzotti1/Musclemate/blob/main/LICENSE">Licence</a>
     </td>
 </table>
 
